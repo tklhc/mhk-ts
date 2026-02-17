@@ -20,76 +20,88 @@
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
+<script type="text/babel" data-presets="react">
 const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
-// Inline SVG icon components - no external dependency needed
-const _ic = (paths, props = {}) => {
-  const { size = 24, color = "currentColor", ...rest } = props;
-  return React.createElement("svg", {
-    width: size, height: size, viewBox: "0 0 24 24", fill: "none",
-    stroke: color, strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", ...rest
-  }, ...paths.map((d, i) => typeof d === "string" ? React.createElement("path", { key: i, d }) : React.createElement(d[0], { key: i, ...d[1] })));
-};
+// Simple SVG icon components
+function _mkIcon(children) {
+  return function IconComponent(props) {
+    var p = props || {};
+    var size = p.size || 24;
+    var color = p.color || "currentColor";
+    var style = p.style || {};
+    return React.createElement("svg", {
+      width: size, height: size, viewBox: "0 0 24 24", fill: "none",
+      stroke: color, strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round",
+      style: style, className: p.className || ""
+    }, children);
+  };
+}
+function _p(d,k) { return React.createElement("path", {d: d, key: k}); }
+function _c(cx,cy,r,k) { return React.createElement("circle", {cx:cx,cy:cy,r:r, key: k}); }
+function _r(x,y,w,h,rx,k) { return React.createElement("rect", {x:x,y:y,width:w,height:h,rx:rx||0,ry:rx||0, key: k}); }
+function _l(x1,y1,x2,y2,k) { return React.createElement("line", {x1:x1,y1:y1,x2:x2,y2:y2, key: k}); }
+function _pg(pts,k) { return React.createElement("polygon", {points:pts, key: k}); }
 
-const Package = (p) => _ic(["M16.5 9.4 7.55 4.24",["path",{d:"M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"}],"M3.27 6.96 12 12.01l8.73-5.05","M12 22.08V12"], p);
-const ClipboardList = (p) => _ic([["rect",{width:8,height:4,x:8,y:2,rx:1,ry:1}],["path",{d:"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"}],"M12 11h4","M12 16h4","M8 11h.01","M8 16h.01"], p);
-const Scissors = (p) => _ic([["circle",{cx:6,cy:6,r:3}],["circle",{cx:6,cy:18,r:3}],"M20 4 8.12 15.88","M14.47 14.48 20 20","M8.12 8.12 12 12"], p);
-const Factory = (p) => _ic(["M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z","M17 18h1","M12 18h1","M7 18h1"], p);
-const CheckCircle2 = (p) => _ic([["circle",{cx:12,cy:12,r:10}],"M9 12l2 2 4-4"], p);
-const Zap = (p) => _ic([["polygon",{points:"13 2 3 14 12 14 11 22 21 10 12 10 13 2"}]], p);
-const Layers = (p) => _ic(["M12 2 2 7l10 5 10-5-10-5Z","M2 17l10 5 10-5","M2 12l10 5 10-5"], p);
-const Truck = (p) => _ic(["M1 3h15v13H1z","M16 8h4l3 3v5h-7V8z",["circle",{cx:5.5,cy:18.5,r:2.5}],["circle",{cx:18.5,cy:18.5,r:2.5}]], p);
-const Plus = (p) => _ic(["M12 5v14","M5 12h14"], p);
-const Search = (p) => _ic([["circle",{cx:11,cy:11,r:8}],"M21 21l-4.35-4.35"], p);
-const ChevronRight = (p) => _ic(["M9 18l6-6-6-6"], p);
-const ChevronDown = (p) => _ic(["M6 9l6 6 6-6"], p);
-const ChevronLeft = (p) => _ic(["M15 18l-6-6 6-6"], p);
-const Clock = (p) => _ic([["circle",{cx:12,cy:12,r:10}],"M12 6v6l4 2"], p);
-const AlertTriangle = (p) => _ic(["M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z","M12 9v4","M12 17h.01"], p);
-const BarChart3 = (p) => _ic(["M18 20V10","M12 20V4","M6 20v-6"], p);
-const Calendar = (p) => _ic([["rect",{width:18,height:18,x:3,y:4,rx:2,ry:2}],"M16 2v4","M8 2v4","M3 10h18"], p);
-const Users = (p) => _ic(["M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2",["circle",{cx:9,cy:7,r:4}],"M23 21v-2a4 4 0 0 0-3-3.87",["circle",{cx:16,cy:3.13,r:4}]], p);
-const Settings = (p) => _ic([["circle",{cx:12,cy:12,r:3}],"M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"], p);
-const Eye = (p) => _ic(["M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z",["circle",{cx:12,cy:12,r:3}]], p);
-const EyeOff = (p) => _ic(["M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94","M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19","M1 1l22 22","M14.12 14.12a3 3 0 1 1-4.24-4.24"], p);
-const Play = (p) => _ic([["polygon",{points:"5 3 19 12 5 21 5 3"}]], p);
-const Square = (p) => _ic([["rect",{width:18,height:18,x:3,y:3,rx:2,ry:2}]], p);
-const Check = (p) => _ic(["M20 6L9 17l-5-5"], p);
-const X = (p) => _ic(["M18 6L6 18","M6 6l12 12"], p);
-const Printer = (p) => _ic(["M6 9V2h12v7","M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2","M6 14h12v8H6z"], p);
-const FileText = (p) => _ic(["M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z","M14 2v6h6","M16 13H8","M16 17H8","M10 9H8"], p);
-const ArrowRight = (p) => _ic(["M5 12h14","M12 5l7 7-7 7"], p);
-const Filter = (p) => _ic([["polygon",{points:"22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"}]], p);
-const RefreshCw = (p) => _ic(["M23 4v6h-6","M1 20v-6h6","M3.51 9a9 9 0 0 1 14.85-3.36L23 10","M1 14l4.64 4.36A9 9 0 0 0 20.49 15"], p);
-const Monitor = (p) => _ic([["rect",{width:20,height:14,x:2,y:3,rx:2,ry:2}],"M8 21h8","M12 17v4"], p);
-const User = (p) => _ic(["M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2",["circle",{cx:12,cy:7,r:4}]], p);
-const Box = (p) => _ic(["M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z","M3.27 6.96 12 12.01l8.73-5.05","M12 22.08V12"], p);
-const Tag = (p) => _ic(["M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z",["line",{x1:7,y1:7,x2:7.01,y2:7}]], p);
-const CircleDot = (p) => _ic([["circle",{cx:12,cy:12,r:10}],["circle",{cx:12,cy:12,r:1}]], p);
-const Hash = (p) => _ic(["M4 9h16","M4 15h16","M10 3L8 21","M16 3l-2 18"], p);
-const Gauge = (p) => _ic(["M12 15.5A3.5 3.5 0 1 0 8.5 12 3.5 3.5 0 0 0 12 15.5Z","M19.14 9.15a8 8 0 1 0 1.56 5.35"], p);
-const TrendingUp = (p) => _ic(["M23 6l-9.5 9.5-5-5L1 18","M17 6h6v6"], p);
-const Edit = (p) => _ic(["M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7","M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"], p);
-const Trash2 = (p) => _ic(["M3 6h18","M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2","M10 11v6","M14 11v6"], p);
-const Save = (p) => _ic(["M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z","M17 21v-8H7v8","M7 3v5h8"], p);
-const ArrowDown = (p) => _ic(["M12 5v14","M19 12l-7 7-7-7"], p);
-const ArrowUp = (p) => _ic(["M12 19V5","M5 12l7-7 7 7"], p);
-const Home = (p) => _ic(["M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z","M9 22V12h6v10"], p);
-const Wrench = (p) => _ic(["M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"], p);
-const Lock = (p) => _ic([["rect",{width:18,height:11,x:3,y:11,rx:2,ry:2}],"M7 11V7a5 5 0 0 1 10 0v4"], p);
-const Unlock = (p) => _ic([["rect",{width:18,height:11,x:3,y:11,rx:2,ry:2}],"M7 11V7a5 5 0 0 1 9.9-1"], p);
-const Shield = (p) => _ic(["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"], p);
-const Upload = (p) => _ic(["M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4","M17 8l-5-5-5 5","M12 3v12"], p);
-const File = (p) => _ic(["M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z","M13 2v7h7"], p);
-const Download = (p) => _ic(["M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4","M7 10l5 5 5-5","M12 15V3"], p);
-const LogOut = (p) => _ic(["M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4","M16 17l5-5-5-5","M21 12H9"], p);
-const UserCog = (p) => _ic(["M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2",["circle",{cx:8.5,cy:7,r:4}],["circle",{cx:19,cy:14,r:2}],"M19 8v1","M19 19v1","M22.9 14H22","M16.1 14H15","M21.12 11.88l-.7.7","M16.88 16.12l-.7.7","M21.12 16.12l-.7-.7","M16.88 11.88l-.7-.7"], p);
-const ShoppingCart = (p) => _ic([["circle",{cx:9,cy:21,r:1}],["circle",{cx:20,cy:21,r:1}],"M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"], p);
+var Package = _mkIcon([_p("M16.5 9.4 7.55 4.24","a"),_p("M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z","b"),_p("M3.27 6.96 12 12.01l8.73-5.05","c"),_p("M12 22.08V12","d")]);
+var ClipboardList = _mkIcon([_r(8,2,8,4,1,"a"),_p("M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2","b"),_p("M12 11h4","c"),_p("M12 16h4","d"),_p("M8 11h.01","e"),_p("M8 16h.01","f")]);
+var Scissors = _mkIcon([_c(6,6,3,"a"),_c(6,18,3,"b"),_p("M20 4 8.12 15.88","c"),_p("M14.47 14.48 20 20","d"),_p("M8.12 8.12 12 12","e")]);
+var Factory = _mkIcon([_p("M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z","a"),_p("M17 18h1","b"),_p("M12 18h1","c"),_p("M7 18h1","d")]);
+var CheckCircle2 = _mkIcon([_c(12,12,10,"a"),_p("M9 12l2 2 4-4","b")]);
+var Zap = _mkIcon([_pg("13 2 3 14 12 14 11 22 21 10 12 10 13 2","a")]);
+var Layers = _mkIcon([_p("M12 2 2 7l10 5 10-5-10-5Z","a"),_p("M2 17l10 5 10-5","b"),_p("M2 12l10 5 10-5","c")]);
+var Truck = _mkIcon([_p("M1 3h15v13H1z","a"),_p("M16 8h4l3 3v5h-7V8z","b"),_c(5.5,18.5,2.5,"c"),_c(18.5,18.5,2.5,"d")]);
+var Plus = _mkIcon([_p("M12 5v14","a"),_p("M5 12h14","b")]);
+var Search = _mkIcon([_c(11,11,8,"a"),_p("M21 21l-4.35-4.35","b")]);
+var ChevronRight = _mkIcon([_p("M9 18l6-6-6-6","a")]);
+var ChevronDown = _mkIcon([_p("M6 9l6 6 6-6","a")]);
+var ChevronLeft = _mkIcon([_p("M15 18l-6-6 6-6","a")]);
+var Clock = _mkIcon([_c(12,12,10,"a"),_p("M12 6v6l4 2","b")]);
+var AlertTriangle = _mkIcon([_p("M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z","a"),_p("M12 9v4","b"),_p("M12 17h.01","c")]);
+var BarChart3 = _mkIcon([_p("M18 20V10","a"),_p("M12 20V4","b"),_p("M6 20v-6","c")]);
+var Calendar = _mkIcon([_r(3,4,18,18,2,"a"),_p("M16 2v4","b"),_p("M8 2v4","c"),_p("M3 10h18","d")]);
+var Users = _mkIcon([_p("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2","a"),_c(9,7,4,"b"),_p("M23 21v-2a4 4 0 0 0-3-3.87","c"),_c(16,3.13,4,"d")]);
+var Settings = _mkIcon([_c(12,12,3,"a"),_p("M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z","b")]);
+var Eye = _mkIcon([_p("M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z","a"),_c(12,12,3,"b")]);
+var EyeOff = _mkIcon([_p("M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94","a"),_p("M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19","b"),_p("M1 1l22 22","c"),_p("M14.12 14.12a3 3 0 1 1-4.24-4.24","d")]);
+var Play = _mkIcon([_pg("5 3 19 12 5 21 5 3","a")]);
+var Square = _mkIcon([_r(3,3,18,18,2,"a")]);
+var Check = _mkIcon([_p("M20 6L9 17l-5-5","a")]);
+var X = _mkIcon([_p("M18 6L6 18","a"),_p("M6 6l12 12","b")]);
+var Printer = _mkIcon([_p("M6 9V2h12v7","a"),_p("M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2","b"),_p("M6 14h12v8H6z","c")]);
+var FileText = _mkIcon([_p("M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z","a"),_p("M14 2v6h6","b"),_p("M16 13H8","c"),_p("M16 17H8","d"),_p("M10 9H8","e")]);
+var ArrowRight = _mkIcon([_p("M5 12h14","a"),_p("M12 5l7 7-7 7","b")]);
+var Filter = _mkIcon([_pg("22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3","a")]);
+var RefreshCw = _mkIcon([_p("M23 4v6h-6","a"),_p("M1 20v-6h6","b"),_p("M3.51 9a9 9 0 0 1 14.85-3.36L23 10","c"),_p("M1 14l4.64 4.36A9 9 0 0 0 20.49 15","d")]);
+var Monitor = _mkIcon([_r(2,3,20,14,2,"a"),_p("M8 21h8","b"),_p("M12 17v4","c")]);
+var User = _mkIcon([_p("M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2","a"),_c(12,7,4,"b")]);
+var Box = _mkIcon([_p("M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z","a"),_p("M3.27 6.96 12 12.01l8.73-5.05","b"),_p("M12 22.08V12","c")]);
+var Tag = _mkIcon([_p("M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z","a"),_l(7,7,7.01,7,"b")]);
+var CircleDot = _mkIcon([_c(12,12,10,"a"),_c(12,12,1,"b")]);
+var Hash = _mkIcon([_p("M4 9h16","a"),_p("M4 15h16","b"),_p("M10 3L8 21","c"),_p("M16 3l-2 18","d")]);
+var Gauge = _mkIcon([_p("M12 15.5A3.5 3.5 0 1 0 8.5 12 3.5 3.5 0 0 0 12 15.5Z","a"),_p("M19.14 9.15a8 8 0 1 0 1.56 5.35","b")]);
+var TrendingUp = _mkIcon([_p("M23 6l-9.5 9.5-5-5L1 18","a"),_p("M17 6h6v6","b")]);
+var Edit = _mkIcon([_p("M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7","a"),_p("M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z","b")]);
+var Trash2 = _mkIcon([_p("M3 6h18","a"),_p("M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2","b"),_p("M10 11v6","c"),_p("M14 11v6","d")]);
+var Save = _mkIcon([_p("M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z","a"),_p("M17 21v-8H7v8","b"),_p("M7 3v5h8","c")]);
+var ArrowDown = _mkIcon([_p("M12 5v14","a"),_p("M19 12l-7 7-7-7","b")]);
+var ArrowUp = _mkIcon([_p("M12 19V5","a"),_p("M5 12l7-7 7 7","b")]);
+var Home = _mkIcon([_p("M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z","a"),_p("M9 22V12h6v10","b")]);
+var Wrench = _mkIcon([_p("M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z","a")]);
+var Lock = _mkIcon([_r(3,11,18,11,2,"a"),_p("M7 11V7a5 5 0 0 1 10 0v4","b")]);
+var Unlock = _mkIcon([_r(3,11,18,11,2,"a"),_p("M7 11V7a5 5 0 0 1 9.9-1","b")]);
+var Shield = _mkIcon([_p("M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z","a")]);
+var Upload = _mkIcon([_p("M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4","a"),_p("M17 8l-5-5-5 5","b"),_p("M12 3v12","c")]);
+var File = _mkIcon([_p("M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z","a"),_p("M13 2v7h7","b")]);
+var Download = _mkIcon([_p("M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4","a"),_p("M7 10l5 5 5-5","b"),_p("M12 15V3","c")]);
+var LogOut = _mkIcon([_p("M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4","a"),_p("M16 17l5-5-5-5","b"),_p("M21 12H9","c")]);
+var UserCog = _mkIcon([_p("M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2","a"),_c(8.5,7,4,"b"),_c(19,14,2,"c"),_p("M19 8v1","d"),_p("M19 19v1","e"),_p("M22.9 14H22","f"),_p("M16.1 14H15","g")]);
+var ShoppingCart = _mkIcon([_c(9,21,1,"a"),_c(20,21,1,"b"),_p("M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6","c")]);
 
-// ═══════════════════════════════════════════
+
+// 
 // RBAC — ROLES & PERMISSIONS
-// ═══════════════════════════════════════════
+// 
 const PERMISSIONS = {
   orders_view: "Siparişleri Görüntüle",
   orders_edit: "Sipariş Oluştur/Düzenle",
@@ -142,17 +154,17 @@ const DEFAULT_ROLES = {
 };
 
 const USERS_SEED = [
-  { id: "U1", name: "Taha", username: "taha", role: "admin", avatar: "T" },
-  { id: "U2", name: "Ahmet Yılmaz", username: "ahmet", role: "operator", avatar: "A" },
-  { id: "U3", name: "Mehmet Kaya", username: "mehmet", role: "operator", avatar: "M" },
-  { id: "U4", name: "Fatma Demir", username: "fatma", role: "manager", avatar: "F" },
-  { id: "U5", name: "Zeynep Acar", username: "zeynep", role: "planner", avatar: "Z" },
-  { id: "U6", name: "Emre Şahin", username: "emre", role: "viewer", avatar: "E" },
+  { id: "U1", name: "Taha", username: "taha", password: "1234", role: "admin", avatar: "T" },
+  { id: "U2", name: "Ahmet Yılmaz", username: "ahmet", password: "1234", role: "operator", avatar: "A" },
+  { id: "U3", name: "Mehmet Kaya", username: "mehmet", password: "1234", role: "operator", avatar: "M" },
+  { id: "U4", name: "Fatma Demir", username: "fatma", password: "1234", role: "manager", avatar: "F" },
+  { id: "U5", name: "Zeynep Acar", username: "zeynep", password: "1234", role: "planner", avatar: "Z" },
+  { id: "U6", name: "Emre Şahin", username: "emre", password: "1234", role: "viewer", avatar: "E" },
 ];
 
-// ═══════════════════════════════════════════
+// 
 // DATA
-// ═══════════════════════════════════════════
+// 
 const MACHINES_SEED = [
   { id: "M1", name: "S20-1", type: "CNC", status: "active" },
   { id: "M2", name: "S20-2", type: "CNC", status: "active" },
@@ -270,6 +282,17 @@ const WORK_END = 17*60+30;  // 17:30 = 1050 min
 const WORK_MINUTES = WORK_END - WORK_START; // 570 min
 
 const genId = () => Math.random().toString(36).substr(2,9);
+
+// Self-managing input that maintains focus during typing
+function LocalInput({value,onChange,onBlur,placeholder,style:s2,type,inputMode:im}) {
+  const [local,setLocal]=useState(value||"");
+  const ref=useRef(null);
+  const prevValue=useRef(value);
+  useEffect(()=>{if(value!==prevValue.current){setLocal(value||"");prevValue.current=value;}},[value]);
+  return <input ref={ref} type={type||"text"} inputMode={im} value={local} placeholder={placeholder}
+    onChange={e=>{setLocal(e.target.value);if(onChange)onChange(e.target.value);}}
+    onBlur={()=>{if(onBlur)onBlur(local);}} style={s2}/>;
+}
 const fmtDate = d => new Date(d).toLocaleDateString("tr-TR");
 const fmtDateTime = d => new Date(d).toLocaleString("tr-TR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
 const fmtMoney = (v,c) => { const s=CURRENCIES.find(x=>x.value===c)?.symbol||"€"; return `${s}${Number(v||0).toFixed(2)}`; };
@@ -316,9 +339,9 @@ const SAMPLE_ORDERS = [
   }
 ];
 
-// ═══════════════════════════════════════════
+// 
 // UI COMPONENTS
-// ═══════════════════════════════════════════
+// 
 const Badge = ({children,color,bg}) => (
   <span style={{display:"inline-flex",alignItems:"center",gap:4,padding:"3px 10px",borderRadius:6,fontSize:12,fontWeight:600,color,background:bg,letterSpacing:.3}}>{children}</span>
 );
@@ -335,7 +358,7 @@ const PriorityBadge = ({priority}) => {
 const OrderTypeBadge = ({type}) => type==="bileme"?<Badge color="#f59e0b" bg="rgba(245,158,11,0.15)">🔧 Bileme</Badge>:<Badge color="#6366f1" bg="rgba(99,102,241,0.15)">🏭 Üretim</Badge>;
 
 function Btn({children,variant="primary",size="md",onClick,disabled,style:s2,icon:Icon}){
-  const base={display:"inline-flex",alignItems:"center",gap:6,border:"none",borderRadius:8,cursor:disabled?"not-allowed":"pointer",fontWeight:600,fontFamily:"inherit",transition:"all 0.15s",opacity:disabled?.5:1,whiteSpace:"nowrap"};
+  const base={display:"inline-flex",alignItems:"center",gap:6,border:"none",borderRadius:8,cursor:disabled?"not-allowed":"pointer",fontWeight:600,fontFamily:"inherit",transition:"all 0.15s",opacity:disabled?0.5:1,whiteSpace:"nowrap"};
   const sizes={sm:{padding:"6px 12px",fontSize:12},md:{padding:"8px 16px",fontSize:13},lg:{padding:"10px 20px",fontSize:14}};
   const vars={primary:{background:"#3b82f6",color:"#fff"},success:{background:"#10b981",color:"#fff"},danger:{background:"#ef4444",color:"#fff"},warning:{background:"#f59e0b",color:"#000"},ghost:{background:"rgba(255,255,255,0.06)",color:"#94a3b8",border:"1px solid rgba(255,255,255,0.1)"},outline:{background:"transparent",color:"#3b82f6",border:"1px solid #3b82f6"}};
   return <button onClick={onClick} disabled={disabled} style={{...base,...sizes[size],...vars[variant],...s2}}>{Icon&&<Icon size={size==="sm"?14:16}/>}{children}</button>;
@@ -427,9 +450,9 @@ function WorkflowProgress({currentStep,orderType}){
   );
 }
 
-// ═══════════════════════════════════════════
+// 
 // SCHEDULING ENGINE
-// ═══════════════════════════════════════════
+// 
 function buildSchedule(productionJobs, workOrders, startDate) {
   const schedule = {};
   const allJobs = [...productionJobs].filter(j=>j.machineId && j.estimatedMinutes > 0);
@@ -503,12 +526,26 @@ function buildSchedule(productionJobs, workOrders, startDate) {
   return schedule;
 }
 
-// ═══════════════════════════════════════════
+// 
 // MAIN APP
-// ═══════════════════════════════════════════
+// 
 function App() {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [users, setUsers] = useState(USERS_SEED);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try { 
+      const s = localStorage.getItem("mihenkCurrentUser"); 
+      if(!s) return null;
+      const saved = JSON.parse(s);
+      // Validate saved session against current users
+      const usersData = localStorage.getItem("mihenkUsers");
+      const usersList = usersData ? JSON.parse(usersData) : USERS_SEED;
+      const valid = usersList.find(u => u.id === saved.id);
+      return valid ? {...valid} : null;
+    } catch(e) { return null; }
+  });
+  useEffect(() => { try { if(currentUser) localStorage.setItem("mihenkCurrentUser", JSON.stringify(currentUser)); else localStorage.removeItem("mihenkCurrentUser"); } catch(e){} }, [currentUser]);
+  const [users, setUsers] = useState(() => {
+    try { const s = localStorage.getItem("mihenkUsers"); return s ? JSON.parse(s) : USERS_SEED; } catch(e) { return USERS_SEED; }
+  });
   const [page, setPage] = useState("dashboard");
   const [orders, setOrders] = useState(SAMPLE_ORDERS);
   const [workOrders, setWorkOrders] = useState([
@@ -537,8 +574,12 @@ function App() {
     {id:"PJ1",woId:"IE-001-0",itemId:"I1",machineId:"M1",operatorId:"OP1",status:"assigned",
       startTime:null,endTime:null,estimatedMinutes:120,assignedAt:1000}
   ]);
-  const [machines] = useState(MACHINES_SEED);
-  const [operators] = useState(OPERATORS_SEED);
+  const [machines, setMachines] = useState(() => {
+    try { const s = localStorage.getItem("mihenkMachines"); return s ? JSON.parse(s) : MACHINES_SEED; } catch(e) { return MACHINES_SEED; }
+  });
+  const [operators, setOperators] = useState(() => {
+    try { const s = localStorage.getItem("mihenkOperators"); return s ? JSON.parse(s) : OPERATORS_SEED; } catch(e) { return OPERATORS_SEED; }
+  });
   const [barStock, setBarStock] = useState(BAR_STOCK_SEED);
   const [coatingQueue, setCoatingQueue] = useState([]);
   const [grindingQueue, setGrindingQueue] = useState([]);
@@ -548,16 +589,25 @@ function App() {
   const [pdfViewer, setPdfViewer] = useState(null);
   const [woDetail, setWoDetail] = useState(null);
 
+  const [userPerms, setUserPerms] = useState(() => {
+    try { const s = localStorage.getItem("mihenkUserPerms"); return s ? JSON.parse(s) : {}; } catch(e) { return {}; }
+  });
+  useEffect(() => { try { localStorage.setItem("mihenkUserPerms", JSON.stringify(userPerms)); } catch(e){} }, [userPerms]);
+  // Persist users list
+  useEffect(() => { try { localStorage.setItem("mihenkUsers", JSON.stringify(users)); } catch(e){} }, [users]);
+  // Persist machines & operators
+  useEffect(() => { try { localStorage.setItem("mihenkMachines", JSON.stringify(machines)); } catch(e){} }, [machines]);
+  useEffect(() => { try { localStorage.setItem("mihenkOperators", JSON.stringify(operators)); } catch(e){} }, [operators]);
+
   const hasPerm = useCallback((perm) => {
     if(!currentUser) return false;
-    const role = DEFAULT_ROLES[currentUser.role];
-    if(!role) return false;
-    return role.permissions.includes("admin") || role.permissions.includes(perm);
-  }, [currentUser]);
+    const perms = userPerms[currentUser.id] || DEFAULT_ROLES[currentUser.role]?.permissions || [];
+    return perms.includes("admin") || perms.includes(perm);
+  }, [currentUser, userPerms]);
 
   const canPrice = hasPerm("orders_price");
 
-  // ═══ PDF HELPERS ═══
+  //  PDF HELPERS 
   const addPdfToOrderItem = useCallback((orderId, itemId, file) => {
     const reader = new FileReader();
     reader.onload = ev => {
@@ -628,7 +678,7 @@ function App() {
   // Schedule
   const schedule = useMemo(() => buildSchedule(productionJobs, workOrders, new Date("2026-02-14")), [productionJobs, workOrders]);
 
-  // ═══ ACTIONS ═══
+  //  ACTIONS 
   const generateWorkOrder = useCallback((order) => {
     const newWOs = order.items.map((item, idx) => ({
       id:`IE-${order.id.split("-").pop()}-${idx+1}`, orderId:order.id, customerName:order.customerName,
@@ -704,7 +754,7 @@ function App() {
     setRescheduleModal(null);
   }, []);
 
-  // ═══ CUTTING FUNCTIONS ═══
+  //  CUTTING FUNCTIONS 
   const calculateCutting = useCallback((diameter, materialCode, itemLength, qty) => {
     const entry = barStock.find(s => s.diameter === diameter && s.materialCode === materialCode);
     if (!entry) return { found: false, availableBars: 0, barsNeeded: 0, piecesPerBar: 0, remnant: 0, sufficient: false, usableRemnants: [] };
@@ -789,7 +839,7 @@ function App() {
     }));
   }, [workOrders]);
 
-  // ═══ GRINDING FUNCTIONS ═══
+  //  GRINDING FUNCTIONS 
   const completeInternalGrinding = useCallback((woId, itemId) => {
     setWorkOrders(p => p.map(wo => {
       if (wo.id !== woId) return wo;
@@ -812,7 +862,7 @@ function App() {
       items: items.map(it => ({
         itemId: it.id, woId: it.woId, productCode: it.productCode || `Ø${it.diameter}x${it.length}`,
         rawDiameter: it.diameter, toolDiameter: Number(it.grindDiameter) || it.diameter,
-        grindLength: Number(it.grindLength) || it.length, qty: it.qty,
+        grindLength: Number(it.grindLength) || it.length, grindTolerance: it.grindTolerance || "", qty: it.qty,
         toolCode: it.toolCode, productType: it.productType, materialCode: it.materialCode,
         customerName: it.customerName
       })),
@@ -856,6 +906,23 @@ function App() {
     setProductionJobs(p=>p.map(j=>j.id===jobId?{...j,status:"completed",endTime:now}:j));
     setWorkOrders(p=>p.map(wo=>({...wo,items:wo.items.map(it=>{const job=productionJobs.find(j=>j.id===jobId);if(job&&it.id===job.itemId) return{...it,woStatus:"qc",endTime:now,qcChecks:it.qcChecks||{dimensionOk:false,surfaceOk:false,runoutOk:false,visualOk:false}};return it;}),currentStep:"qc"})));
   },[productionJobs]);
+
+  //  DEFECT REPORTING 
+  const reportDefect = useCallback((woId, itemId, rejectCount, reason, stage) => {
+    setWorkOrders(p => p.map(wo => {
+      if (wo.id !== woId) return wo;
+      return { ...wo, items: wo.items.map(it => {
+        if (it.id !== itemId) return it;
+        const prevReject = Number(it.rejectQty) || 0;
+        const newReject = prevReject + Number(rejectCount);
+        const log = it.defectLog || [];
+        return { ...it, rejectQty: newReject, defectLog: [...log, {
+          date: new Date().toISOString(), qty: Number(rejectCount), reason, stage,
+          reportedBy: currentUser?.name || "Bilinmiyor"
+        }]};
+      })};
+    }));
+  }, [currentUser]);
 
   const completeQC = useCallback((woId,itemId,checks)=>{
     setWorkOrders(p=>p.map(wo=>{if(wo.id!==woId) return wo;return{...wo,currentStep:"laser",items:wo.items.map(it=>it.id===itemId?{...it,qcChecks:checks,woStatus:"laser"}:it)};}));
@@ -904,35 +971,47 @@ function App() {
     return{total:t,active:a,pending:pend,production:pr,bileme:bl,running:run,machineLoad:ml,coatingPending:cp,cuttingPending:cutting,grindingPending:grindPend,purchasePending:purchaseRequests.filter(p=>p.status!=="received").length};
   },[orders,productionJobs,machines,coatingQueue,workOrders,purchaseRequests,grindingQueue]);
 
-  // ═══ LOGIN SCREEN ═══
+  //  LOGIN SCREEN 
+  const [loginUser, setLoginUser] = useState("");
+  const [loginPass, setLoginPass] = useState("");
+  const [loginError, setLoginError] = useState("");
   if(!currentUser){
+    const handleLogin = () => {
+      const u = users.find(x => x.username === loginUser && x.password === loginPass);
+      if(u) { setCurrentUser(u); setLoginError(""); setLoginUser(""); setLoginPass(""); }
+      else setLoginError("Kullanıcı adı veya şifre hatalı!");
+    };
     return (
       <div style={{height:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#0f1219",fontFamily:"'DM Sans',sans-serif"}}>
         <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');`}</style>
-        <div style={{width:420,padding:32,borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)"}}>
+        <div style={{width:380,padding:32,borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)"}}>
           <div style={{textAlign:"center",marginBottom:28}}>
             <div style={{width:56,height:56,borderRadius:14,background:"linear-gradient(135deg,#3b82f6,#8b5cf6)",display:"inline-flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:22,color:"#fff",marginBottom:12}}>M</div>
             <h2 style={{color:"#f1f5f9",margin:"8px 0 4px",fontSize:20}}>MİHENK Üretim Takip</h2>
-            <p style={{color:"#64748b",fontSize:13,margin:0}}>Kullanıcı seçerek giriş yapın</p>
+            <p style={{color:"#64748b",fontSize:13,margin:0}}>Kullanıcı adı ve şifrenizle giriş yapın</p>
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            {users.map(u=>(
-              <button key={u.id} onClick={()=>setCurrentUser(u)} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderRadius:10,border:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.02)",cursor:"pointer",transition:"all 0.15s",textAlign:"left"}}>
-                <div style={{width:36,height:36,borderRadius:9,background:"rgba(59,130,246,0.15)",display:"flex",alignItems:"center",justifyContent:"center",color:"#3b82f6",fontWeight:700,fontSize:14,flexShrink:0}}>{u.avatar}</div>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:14,fontWeight:600,color:"#e2e8f0"}}>{u.name}</div>
-                  <div style={{fontSize:11,color:"#64748b"}}>{DEFAULT_ROLES[u.role]?.label}</div>
-                </div>
-                <Shield size={14} color="#475569"/>
-              </button>
-            ))}
+          <div style={{display:"flex",flexDirection:"column",gap:12}}>
+            <div>
+              <div style={{fontSize:11,fontWeight:600,color:"#94a3b8",marginBottom:4}}>Kullanıcı Adı</div>
+              <input type="text" value={loginUser} onChange={e=>{setLoginUser(e.target.value);setLoginError("");}}
+                onKeyDown={e=>e.key==="Enter"&&handleLogin()}
+                placeholder="Kullanıcı adı" style={{width:"100%",padding:"10px 14px",borderRadius:10,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e2e8f0",fontSize:14,outline:"none",fontFamily:"inherit"}}/>
+            </div>
+            <div>
+              <div style={{fontSize:11,fontWeight:600,color:"#94a3b8",marginBottom:4}}>Şifre</div>
+              <input type="password" value={loginPass} onChange={e=>{setLoginPass(e.target.value);setLoginError("");}}
+                onKeyDown={e=>e.key==="Enter"&&handleLogin()}
+                placeholder="Şifre" style={{width:"100%",padding:"10px 14px",borderRadius:10,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e2e8f0",fontSize:14,outline:"none",fontFamily:"inherit"}}/>
+            </div>
+            {loginError&&<div style={{fontSize:12,color:"#ef4444",textAlign:"center"}}>{loginError}</div>}
+            <button onClick={handleLogin} style={{padding:"10px 0",borderRadius:10,border:"none",background:"linear-gradient(135deg,#3b82f6,#6366f1)",color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"inherit",marginTop:4}}>Giriş Yap</button>
           </div>
         </div>
       </div>
     );
   }
 
-  // ═══ NAV ═══
+  //  NAV 
   const navItems = [
     {key:"dashboard",label:"Panel",icon:Home,perm:null},
     {key:"orders",label:"Siparişler",icon:Package,perm:"orders_view"},
@@ -972,7 +1051,7 @@ function App() {
               <div style={{fontSize:12,fontWeight:600,color:"#e2e8f0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{currentUser.name}</div>
               <div style={{fontSize:10,color:"#64748b"}}>{DEFAULT_ROLES[currentUser.role]?.label}</div>
             </div>
-            <button onClick={()=>setCurrentUser(null)} style={{background:"none",border:"none",cursor:"pointer",color:"#64748b",padding:4}}><LogOut size={14}/></button>
+            <button onClick={()=>{setCurrentUser(null);localStorage.removeItem("mihenkCurrentUser");}} style={{background:"none",border:"none",cursor:"pointer",color:"#64748b",padding:4}}><LogOut size={14}/></button>
           </div>
         )}
         <div onClick={()=>setSideCollapsed(!sideCollapsed)} style={{display:"flex",alignItems:"center",justifyContent:"center",padding:8,borderRadius:8,cursor:"pointer",color:"#64748b"}}>
@@ -982,7 +1061,7 @@ function App() {
     </div>
   );
 
-  // ═══ DASHBOARD ═══
+  //  DASHBOARD 
   const Dashboard = () => (
     <div>
       <h2 style={{margin:"0 0 20px",color:"#f1f5f9",fontSize:22,fontWeight:700}}>Üretim Paneli</h2>
@@ -1024,7 +1103,7 @@ function App() {
     </div>
   );
 
-  // ═══ ORDERS PAGE ═══
+  //  ORDERS PAGE 
   const OrdersPage = () => {
     const [showNew,setShowNew]=useState(false);
     const [orderType,setOrderType]=useState("production");
@@ -1070,34 +1149,90 @@ function App() {
       setOrders(p=>[...p,order]);setShowNew(false);setNewOrder({customerName:"",deliveryDate:"",priority:"normal",notes:"",items:[{...emptyP}]});setOrderType("production");setCurrency("EUR");
     };
     const [filterType,setFilterType]=useState("all");
-    const filtered=filterType==="all"?orders:orders.filter(o=>o.orderType===filterType);
+    const [fCust,setFCust]=useState("");
+    const [fPriority,setFPriority]=useState("all");
+    const [fDateY,setFDateY]=useState("");
+    const [fDateM,setFDateM]=useState("");
+    const [fDateD,setFDateD]=useState("");
+    const [fStatus,setFStatus]=useState("all");
+    const [fStep,setFStep]=useState("all");
+    const [expandedOrders,setExpandedOrders]=useState({});
+    const [showFilters,setShowFilters]=useState(false);
+    const toggleOrder = id => setExpandedOrders(p=>({...p,[id]:!p[id]}));
+    const ORDER_STEPS=[{k:"all",l:"Tümü"},{k:"cutting",l:"Kesim"},{k:"grinding",l:"Taşlama"},{k:"production",l:"Üretim"},{k:"qc",l:"Kalite Kontrol"},{k:"coating",l:"Kaplama"},{k:"shipping",l:"Sevkiyat"},{k:"completed",l:"Tamamlandı"}];
+    const filtered=orders.filter(o=>{
+      if(filterType!=="all"&&o.orderType!==filterType) return false;
+      if(fCust&&!o.customerName.toLowerCase().includes(fCust.toLowerCase())) return false;
+      if(fPriority!=="all"&&o.priority!==fPriority) return false;
+      if(fStatus!=="all"){
+        const st=o.status==="completed"?"completed":o.status==="pending"?"pending":"active";
+        if(fStatus!==st) return false;
+      }
+      if(fStep!=="all"){
+        const wo=workOrders.find(w=>w.orderId===o.id);
+        if(!wo) return fStep==="cutting"; // no WO = still at beginning
+        const steps=wo.items.map(i=>i.woStatus);
+        const match=fStep==="cutting"?steps.some(s=>["pending","pending_stock","cut"].includes(s))
+          :fStep==="grinding"?steps.some(s=>["grinding","grinding_dispatch","grinding_shipped"].includes(s))
+          :fStep==="production"?steps.some(s=>["assigned","running"].includes(s))
+          :fStep==="completed"?steps.every(s=>s==="completed"||s==="shipping")
+          :steps.some(s=>s===fStep||s===fStep+"_ready");
+        if(!match) return false;
+      }
+      if(fDateY){
+        const d=new Date(o.date);
+        if(String(d.getFullYear())!==fDateY) return false;
+        if(fDateM&&String(d.getMonth()+1).padStart(2,"0")!==fDateM) return false;
+        if(fDateD&&String(d.getDate()).padStart(2,"0")!==fDateD) return false;
+      }
+      return true;
+    });
 
     return (
       <div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
           <h2 style={{margin:0,color:"#f1f5f9",fontSize:22,fontWeight:700}}>Siparişler</h2>
-          {hasPerm("orders_edit")&&<Btn icon={Plus} onClick={()=>setShowNew(true)}>Yeni Sipariş</Btn>}
+          <div style={{display:"flex",gap:8}}>
+            <Btn variant="ghost" size="sm" icon={Filter} onClick={()=>setShowFilters(!showFilters)}>{showFilters?"Filtreleri Gizle":"Filtrele"}</Btn>
+            {hasPerm("orders_edit")&&<Btn icon={Plus} onClick={()=>setShowNew(true)}>Yeni Sipariş</Btn>}
+          </div>
         </div>
-        <div style={{display:"flex",gap:6,marginBottom:16}}>
-          {[{k:"all",l:"Tümü"},{k:"production",l:"🏭 Üretim"},{k:"bileme",l:"🔧 Bileme"}].map(f=>(
+        <div style={{display:"flex",gap:6,marginBottom:12}}>
+          {[{k:"all",l:"Tümü"},{k:"production",l:"Üretim"},{k:"bileme",l:"Bileme"}].map(f=>(
             <Btn key={f.k} variant={filterType===f.k?"primary":"ghost"} size="sm" onClick={()=>setFilterType(f.k)}>{f.l}</Btn>
           ))}
         </div>
+        {showFilters&&<Card style={{marginBottom:14}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
+            <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Müşteri</div><input type="text" value={fCust} onChange={e=>setFCust(e.target.value)} placeholder="Müşteri ara..." style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e2e8f0",fontSize:12,fontFamily:"inherit"}}/></div>
+            <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Öncelik</div><select value={fPriority} onChange={e=>setFPriority(e.target.value)} style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"#1e293b",color:"#e2e8f0",fontSize:12}}><option value="all">Tümü</option><option value="urgent">Acil</option><option value="high">Yüksek</option><option value="normal">Normal</option><option value="low">Düşük</option></select></div>
+            <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Durum</div><select value={fStatus} onChange={e=>setFStatus(e.target.value)} style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"#1e293b",color:"#e2e8f0",fontSize:12}}><option value="all">Tümü</option><option value="pending">Bekliyor</option><option value="active">Aktif</option><option value="completed">Tamamlandı</option></select></div>
+            <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Konum</div><select value={fStep} onChange={e=>setFStep(e.target.value)} style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"#1e293b",color:"#e2e8f0",fontSize:12}}>{ORDER_STEPS.map(s=><option key={s.k} value={s.k}>{s.l}</option>)}</select></div>
+            <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Yıl</div><input type="text" value={fDateY} onChange={e=>setFDateY(e.target.value)} placeholder="2026" maxLength={4} style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e2e8f0",fontSize:12,fontFamily:"inherit"}}/></div>
+            <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Ay</div><select value={fDateM} onChange={e=>setFDateM(e.target.value)} style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"#1e293b",color:"#e2e8f0",fontSize:12}}><option value="">Tümü</option>{["01","02","03","04","05","06","07","08","09","10","11","12"].map(m=><option key={m} value={m}>{m}</option>)}</select></div>
+            <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Gün</div><input type="text" value={fDateD} onChange={e=>setFDateD(e.target.value)} placeholder="15" maxLength={2} style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e2e8f0",fontSize:12,fontFamily:"inherit"}}/></div>
+          </div>
+          {(fCust||fPriority!=="all"||fDateY||fDateM||fDateD||fStatus!=="all"||fStep!=="all")&&<div style={{marginTop:8}}><Btn variant="ghost" size="sm" onClick={()=>{setFCust("");setFPriority("all");setFDateY("");setFDateM("");setFDateD("");setFStatus("all");setFStep("all");}}>Filtreleri Temizle</Btn></div>}
+        </Card>}
         <Card>
           <div style={{overflowX:"auto"}}>
             <table style={{width:"100%",borderCollapse:"collapse"}}>
               <thead>
                 <tr style={{borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
-                  {["No","Tür","Müşteri","Tarih","Termin","Kalem",canPrice&&"Tutar","Öncelik","Durum","İşlem"].filter(Boolean).map(h=>(
-                    <th key={h} style={{padding:"10px 12px",textAlign:"left",fontSize:11,color:"#64748b",fontWeight:600,textTransform:"uppercase",letterSpacing:.5}}>{h}</th>
+                  {["","No","Tür","Müşteri","Tarih","Termin","Kalem",canPrice&&"Tutar","Öncelik","Durum","İşlem"].filter(Boolean).map(h=>(
+                    <th key={h} style={{padding:"10px 12px",textAlign:"left",fontSize:11,color:"#64748b",fontWeight:600,textTransform:"uppercase",letterSpacing:.5,width:h===""?30:undefined}}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(order=>{
                   const total=order.items.reduce((s,i)=>s+(i.qty*(i.unitPrice||0)),0);
+                  const expanded=expandedOrders[order.id];
+                  const wo=workOrders.find(w=>w.orderId===order.id);
                   return(
-                    <tr key={order.id} style={{borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                    <React.Fragment key={order.id}>
+                    <tr style={{borderBottom:"1px solid rgba(255,255,255,0.04)",cursor:"pointer",background:expanded?"rgba(59,130,246,0.04)":"transparent"}} onClick={()=>order.items.length>0&&toggleOrder(order.id)}>
+                      <td style={{padding:"10px 8px",fontSize:12,color:"#64748b",textAlign:"center"}}>{order.items.length>1&&(expanded?<ChevronDown size={14}/>:<ChevronRight size={14}/>)}</td>
                       <td style={{padding:"10px 12px",fontSize:13,color:"#e2e8f0",fontWeight:600}}>{order.id}</td>
                       <td style={{padding:"10px 12px"}}><OrderTypeBadge type={order.orderType}/></td>
                       <td style={{padding:"10px 12px",fontSize:13,color:"#94a3b8"}}>{order.customerName}</td>
@@ -1107,7 +1242,7 @@ function App() {
                       {canPrice&&<td style={{padding:"10px 12px",fontSize:13,color:"#10b981",fontWeight:600}}>{fmtMoney(total,order.currency)}</td>}
                       <td style={{padding:"10px 12px"}}><PriorityBadge priority={order.priority}/></td>
                       <td style={{padding:"10px 12px"}}><StatusBadge status={order.status==="completed"?"completed":order.status==="pending"?"pending":"active"}/></td>
-                      <td style={{padding:"10px 12px"}}>
+                      <td style={{padding:"10px 12px"}} onClick={e=>e.stopPropagation()}>
                         <div style={{display:"flex",gap:4}}>
                           <Btn variant="ghost" size="sm" icon={Eye} onClick={()=>setModal({type:"orderDetail",order})}>Detay</Btn>
                           {order.status==="pending"&&hasPerm("workorders_edit")&&<Btn variant="success" size="sm" icon={ClipboardList} onClick={()=>generateWorkOrder(order)}>İş Emri</Btn>}
@@ -1115,6 +1250,35 @@ function App() {
                         </div>
                       </td>
                     </tr>
+                    {expanded&&order.items.map(item=>{
+                      const woItem=wo?.items.find(i=>i.id===item.id);
+                      return(
+                        <tr key={item.id} style={{borderBottom:"1px solid rgba(255,255,255,0.02)",background:"rgba(255,255,255,0.015)"}}>
+                          <td style={{padding:"6px 8px"}}/>
+                          <td colSpan={2} style={{padding:"6px 12px",fontSize:12,color:"#e2e8f0"}}>
+                            {order.orderType==="production"?`${item.productCode} (${item.productType||""})`:`Ø${item.diameter}mm ${item.islem||""}`}
+                          </td>
+                          <td style={{padding:"6px 12px",fontSize:12,color:"#94a3b8"}}>{item.qty} ad</td>
+                          <td colSpan={2} style={{padding:"6px 12px",fontSize:12}}>
+                            {item.coatingType&&<Badge color="#14b8a6" bg="rgba(20,184,166,0.12)">{item.coatingType}</Badge>}
+                            {item.materialCode&&<span style={{fontSize:11,color:"#64748b",marginLeft:6}}>{item.materialCode}</span>}
+                          </td>
+                          <td style={{padding:"6px 12px",fontSize:12,color:"#94a3b8"}}>{item.estimatedMinutes?`${item.estimatedMinutes}dk`:""}</td>
+                          {canPrice&&<td style={{padding:"6px 12px",fontSize:12,color:"#10b981"}}>{fmtMoney(item.qty*(item.unitPrice||0),order.currency)}</td>}
+                          <td colSpan={2} style={{padding:"6px 12px"}}>
+                            {woItem&&(()=>{
+                              const st=woItem.woStatus;
+                              const label=st==="completed"?"✓ Tamamlandı":st==="running"?"🔄 Üretimde":st==="assigned"?"📋 Atandı":st==="pending"?"⏳ Bekliyor":st==="pending_stock"?"📦 Stok Bekleniyor":st==="cut"?"✂️ Kesildi":st==="grinding"?"🔧 Taşlamada":st==="grinding_dispatch"?"🔧 Kares Sevk Bekl.":st==="grinding_shipped"?"📦 Kares'te":st==="qc"?"🔍 Kalite Kontrol":st==="qc_ready"?"✓ KK Tamam":st==="coating"?"🎨 Kaplamada":st==="coating_ready"?"✓ Kaplama Tamam":st==="shipping"?"🚚 Sevkiyatta":st;
+                              const color=st==="completed"?"#10b981":st==="running"?"#3b82f6":(st==="assigned"||st==="cut")?"#8b5cf6":(st==="grinding"||st==="grinding_dispatch"||st==="grinding_shipped")?"#d946ef":st==="qc"||st==="qc_ready"?"#14b8a6":"#f59e0b";
+                              return <Badge color={color} bg={color+"20"}>{label}</Badge>;
+                            })()}
+                            {!woItem&&<span style={{fontSize:11,color:"#64748b"}}>İş emri yok</span>}
+                          </td>
+                          <td/>
+                        </tr>
+                      );
+                    })}
+                    </React.Fragment>
                   );
                 })}
               </tbody>
@@ -1129,7 +1293,7 @@ function App() {
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:14}}>
               <Input label="Müşteri Adı" value={newOrder.customerName} onChange={v=>setNewOrder(p=>({...p,customerName:v}))} placeholder="Müşteri"/>
               <Input label="Termin Tarihi" type="date" value={newOrder.deliveryDate} onChange={v=>setNewOrder(p=>({...p,deliveryDate:v}))}/>
-              <Input label="Öncelik" value={newOrder.priority} onChange={v=>setNewOrder(p=>({...p,priority:v}))} options={[{value:"high",label:"Yüksek"},{value:"normal",label:"Normal"},{value:"low",label:"Düşük"}]}/>
+              <Input label="Öncelik" value={newOrder.priority} onChange={v=>setNewOrder(p=>({...p,priority:v}))} options={[{value:"urgent",label:"Acil"},{value:"high",label:"Yüksek"},{value:"normal",label:"Normal"},{value:"low",label:"Düşük"}]}/>
               <Input label="Para Birimi" value={currency} onChange={setCurrency} options={CURRENCIES.map(c=>({value:c.value,label:c.label}))}/>
             </div>
             <Input label="Notlar" value={newOrder.notes} onChange={v=>setNewOrder(p=>({...p,notes:v}))} rows={2} placeholder="Sipariş notları..." style={{marginBottom:14}}/>
@@ -1264,6 +1428,15 @@ function App() {
                     {canPrice&&<div style={{textAlign:"right"}}><div style={{fontSize:12,color:"#64748b"}}>{item.qty} ad × {fmtMoney(item.unitPrice,modal.order.currency)}</div><div style={{fontSize:14,fontWeight:700,color:"#10b981"}}>{fmtMoney(lt,modal.order.currency)}</div></div>}
                     {!canPrice&&<span style={{fontSize:13,color:"#94a3b8"}}>{item.qty} ad</span>}
                   </div>
+                  {Number(item.rejectQty||0)>0&&<div style={{marginTop:6,padding:8,borderRadius:6,background:"rgba(239,68,68,0.06)",border:"1px solid rgba(239,68,68,0.15)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <div style={{fontSize:12}}>
+                        <span style={{color:"#ef4444",fontWeight:700}}>🔴 {item.rejectQty} fire</span>
+                        <span style={{color:"#94a3b8",margin:"0 6px"}}>→</span>
+                        <span style={{color:"#10b981",fontWeight:700}}>Teslim: {item.qty-Number(item.rejectQty||0)}</span>
+                        <span style={{color:"#64748b"}}>/{item.qty} ad</span>
+                      </div>
+                      {item.defectLog&&item.defectLog.length>0&&<span style={{fontSize:10,color:"#64748b"}}>{item.defectLog.length} kayıt</span>}
+                    </div>}
                   <div style={{display:"flex",gap:8,marginTop:8,flexWrap:"wrap",alignItems:"center"}}>
                     {item.materialCode&&(()=>{const mc=MATERIAL_CODES.find(m=>m.value===item.materialCode);return mc?<Badge color={mc.color||"#94a3b8"} bg={`${mc.color||"#94a3b8"}22`}><span style={{display:"inline-block",width:8,height:8,borderRadius:2,background:mc.color,marginRight:4}}></span>{mc.value}</Badge>:item.materialCode?<Badge color="#94a3b8" bg="rgba(148,163,184,0.15)">{item.materialCode}</Badge>:null;})()}
                     {item.coatingType&&<Badge color="#14b8a6" bg="rgba(20,184,166,0.15)">{item.coatingType}</Badge>}
@@ -1284,14 +1457,59 @@ function App() {
     );
   };
 
-  // ═══ WORK ORDERS ═══
-  const WorkOrdersPage = () => (
+  //  WORK ORDERS 
+  const WorkOrdersPage = () => {
+    const [wfCust,setWfCust]=useState("");
+    const [wfType,setWfType]=useState("all");
+    const [wfPriority,setWfPriority]=useState("all");
+    const [wfDateY,setWfDateY]=useState("");
+    const [wfDateM,setWfDateM]=useState("");
+    const [wfDateD,setWfDateD]=useState("");
+    const [wfStep,setWfStep]=useState("all");
+    const [wfShow,setWfShow]=useState(false);
+    const WO_STEPS=[{k:"all",l:"Tümü"},{k:"cutting",l:"Kesim"},{k:"grinding",l:"Taşlama"},{k:"production",l:"Üretim"},{k:"qc",l:"KK"},{k:"laser",l:"Lazer"},{k:"coating",l:"Kaplama"},{k:"shipping",l:"Sevkiyat"}];
+    const filteredWO=workOrders.filter(wo=>{
+      if(wfType!=="all"&&wo.orderType!==wfType) return false;
+      if(wfCust&&!wo.customerName.toLowerCase().includes(wfCust.toLowerCase())) return false;
+      if(wfPriority!=="all"&&wo.priority!==wfPriority) return false;
+      if(wfStep!=="all"){
+        const steps=wo.items.map(i=>i.woStatus);
+        const match=wfStep==="cutting"?steps.some(s=>["pending","pending_stock","cut"].includes(s))
+          :wfStep==="grinding"?steps.some(s=>["grinding","grinding_dispatch","grinding_shipped"].includes(s))
+          :wfStep==="production"?steps.some(s=>["assigned","running"].includes(s))
+          :steps.some(s=>s===wfStep||s===wfStep+"_ready");
+        if(!match) return false;
+      }
+      if(wfDateY){
+        const d=new Date(wo.deliveryDate);
+        if(String(d.getFullYear())!==wfDateY) return false;
+        if(wfDateM&&String(d.getMonth()+1).padStart(2,"0")!==wfDateM) return false;
+        if(wfDateD&&String(d.getDate()).padStart(2,"0")!==wfDateD) return false;
+      }
+      return true;
+    });
+    return(
     <div>
-      <h2 style={{margin:"0 0 20px",color:"#f1f5f9",fontSize:22,fontWeight:700}}>İş Emirleri</h2>
-      {workOrders.length===0?(
-        <Card style={{textAlign:"center",padding:40}}><ClipboardList size={40} color="#475569" style={{marginBottom:12}}/><div style={{color:"#64748b",fontSize:14}}>Henüz iş emri yok. Siparişlerden oluşturun.</div></Card>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <h2 style={{margin:0,color:"#f1f5f9",fontSize:22,fontWeight:700}}>İş Emirleri ({filteredWO.length})</h2>
+        <Btn variant="ghost" size="sm" icon={Filter} onClick={()=>setWfShow(!wfShow)}>{wfShow?"Gizle":"Filtrele"}</Btn>
+      </div>
+      {wfShow&&<Card style={{marginBottom:14}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:10}}>
+          <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Müşteri</div><input type="text" value={wfCust} onChange={e=>setWfCust(e.target.value)} placeholder="Müşteri ara..." style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e2e8f0",fontSize:12,fontFamily:"inherit"}}/></div>
+          <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Tür</div><select value={wfType} onChange={e=>setWfType(e.target.value)} style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"#1e293b",color:"#e2e8f0",fontSize:12}}><option value="all">Tümü</option><option value="production">Üretim</option><option value="bileme">Bileme</option></select></div>
+          <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Öncelik</div><select value={wfPriority} onChange={e=>setWfPriority(e.target.value)} style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"#1e293b",color:"#e2e8f0",fontSize:12}}><option value="all">Tümü</option><option value="urgent">Acil</option><option value="high">Yüksek</option><option value="normal">Normal</option><option value="low">Düşük</option></select></div>
+          <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Konum</div><select value={wfStep} onChange={e=>setWfStep(e.target.value)} style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"#1e293b",color:"#e2e8f0",fontSize:12}}>{WO_STEPS.map(s=><option key={s.k} value={s.k}>{s.l}</option>)}</select></div>
+          <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Yıl</div><input type="text" value={wfDateY} onChange={e=>setWfDateY(e.target.value)} placeholder="2026" maxLength={4} style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e2e8f0",fontSize:12,fontFamily:"inherit"}}/></div>
+          <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Ay</div><select value={wfDateM} onChange={e=>setWfDateM(e.target.value)} style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"#1e293b",color:"#e2e8f0",fontSize:12}}><option value="">Tümü</option>{["01","02","03","04","05","06","07","08","09","10","11","12"].map(m=><option key={m} value={m}>{m}</option>)}</select></div>
+          <div><div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:3}}>Gün</div><input type="text" value={wfDateD} onChange={e=>setWfDateD(e.target.value)} placeholder="15" maxLength={2} style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.1)",background:"rgba(255,255,255,0.04)",color:"#e2e8f0",fontSize:12,fontFamily:"inherit"}}/></div>
+        </div>
+        {(wfCust||wfType!=="all"||wfPriority!=="all"||wfStep!=="all"||wfDateY)&&<div style={{marginTop:8}}><Btn variant="ghost" size="sm" onClick={()=>{setWfCust("");setWfType("all");setWfPriority("all");setWfStep("all");setWfDateY("");setWfDateM("");setWfDateD("");}}>Filtreleri Temizle</Btn></div>}
+      </Card>}
+      {filteredWO.length===0?(
+        <Card style={{textAlign:"center",padding:40}}><ClipboardList size={40} color="#475569" style={{marginBottom:12}}/><div style={{color:"#64748b",fontSize:14}}>Eşleşen iş emri yok.</div></Card>
       ):(
-        workOrders.map(wo=>(
+        filteredWO.map(wo=>(
           <Card key={wo.id} style={{marginBottom:14}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <div style={{display:"flex",alignItems:"center",gap:8}}><button onClick={()=>setWoDetail(wo)} style={{background:"none",border:"none",color:"#6366f1",cursor:"pointer",fontWeight:700,fontSize:15,textDecoration:"underline",fontFamily:"inherit"}}>{wo.id}</button><OrderTypeBadge type={wo.orderType}/><Badge color="#6366f1" bg="rgba(99,102,241,0.15)">{wo.customerName}</Badge><PriorityBadge priority={wo.priority}/></div>
@@ -1307,7 +1525,15 @@ function App() {
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                     <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
                       <span style={{fontSize:13,fontWeight:600,color:"#e2e8f0"}}>{wo.orderType==="production"?item.productCode:`Ø${item.diameter} ${item.islem||""}`}</span>
-                      <span style={{fontSize:12,color:"#64748b"}}>{item.qty} ad</span>
+                      {(Number(item.rejectQty)||0)>0?(
+                        <span style={{fontSize:12}}>
+                          <span style={{color:"#10b981",fontWeight:700}}>{item.qty-(Number(item.rejectQty)||0)}</span>
+                          <span style={{color:"#64748b"}}>/{item.qty} ad</span>
+                          <span style={{color:"#ef4444",fontSize:11,marginLeft:2}}>({item.rejectQty} fire)</span>
+                        </span>
+                      ):(
+                        <span style={{fontSize:12,color:"#64748b"}}>{item.qty} ad</span>
+                      )}
                       {item.estimatedMinutes>0&&<span style={{fontSize:11,color:"#3b82f6"}}>⏱ {item.estimatedMinutes}dk</span>}
                       {item.machineId&&<span style={{fontSize:11,color:"#3b82f6"}}>📍 {machines.find(m=>m.id===item.machineId)?.name}</span>}
                       {item.operatorId&&<span style={{fontSize:11,color:"#94a3b8"}}>👤 {operators.find(o=>o.id===item.operatorId)?.name}</span>}
@@ -1496,7 +1722,9 @@ function App() {
     );
   }
 
-  // ═══ PLANNING PAGE ═══
+  };  // ← close WorkOrdersPage
+
+  //  PLANNING PAGE 
   const PlanningPage = () => {
     const [planTab,setPlanTab]=useState("distribution");
     const [calView,setCalView]=useState("daily");
@@ -1716,10 +1944,15 @@ function App() {
     );
   };
 
-  // ═══ PRODUCTION ═══
+  // PRODUCTION
   const ProductionPage = () => {
     const active=productionJobs.filter(j=>j.status!=="completed");
     const done=productionJobs.filter(j=>j.status==="completed");
+    const [defectModal, setDefectModal] = useState(null);
+    const [defectQty, setDefectQty] = useState("");
+    const [defectReason, setDefectReason] = useState("");
+    const [defectLogModal, setDefectLogModal] = useState(null);
+    const DEFECT_REASONS = ["Kırıldı","Ölçü dışı","Yüzey hatası","Malzeme hatası","Takım kayması","Operatör hatası","Diğer"];
     return(
       <div>
         <h2 style={{margin:"0 0 20px",color:"#f1f5f9",fontSize:22,fontWeight:700}}>Üretim Takip</h2>
@@ -1730,21 +1963,41 @@ function App() {
             const wo=workOrders.find(w=>w.id===job.woId);const item=wo?.items.find(i=>i.id===job.itemId);
             const machine=machines.find(m=>m.id===job.machineId);const op=operators.find(o=>o.id===job.operatorId);
             const elapsed=job.startTime?Math.floor((Date.now()-new Date(job.startTime))/60000):0;
+            const reject=Number(item?.rejectQty)||0;
+            const goodQty=(item?.qty||0)-reject;
             return(
               <div key={job.id} style={{padding:14,borderRadius:10,marginBottom:10,background:job.status==="running"?"rgba(59,130,246,0.08)":"rgba(255,255,255,0.02)",border:`1px solid ${job.status==="running"?"rgba(59,130,246,0.2)":"rgba(255,255,255,0.06)"}`}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
                   <div>
                     <div style={{display:"flex",alignItems:"center",gap:6}}><OrderTypeBadge type={wo?.orderType}/><span style={{fontSize:14,fontWeight:700,color:"#e2e8f0"}}>{item?.productCode||`Ø${item?.diameter} ${item?.islem||""}`}</span></div>
-                    <div style={{fontSize:12,color:"#94a3b8",marginTop:3}}>{wo?.customerName} | {item?.qty} ad | <button onClick={()=>wo&&setWoDetail(wo)} style={{background:"none",border:"none",color:"#6366f1",cursor:"pointer",fontWeight:600,fontSize:12,textDecoration:"underline",fontFamily:"inherit"}}>{wo?.id}</button></div>
+                    <div style={{fontSize:12,color:"#94a3b8",marginTop:3}}>
+                      {wo?.customerName} |
+                      {reject>0?(
+                        <span style={{marginLeft:4}}>
+                          <span style={{color:"#10b981",fontWeight:700}}>{goodQty}</span>
+                          <span style={{color:"#64748b"}}>/{item?.qty} ad</span>
+                          <span style={{color:"#ef4444",fontWeight:600,marginLeft:4}}>({reject} fire)</span>
+                        </span>
+                      ):(
+                        <span style={{marginLeft:4}}>{item?.qty} ad</span>
+                      )}
+                      {" | "}<button onClick={()=>wo&&setWoDetail(wo)} style={{background:"none",border:"none",color:"#6366f1",cursor:"pointer",fontWeight:600,fontSize:12,textDecoration:"underline",fontFamily:"inherit"}}>{wo?.id}</button>
+                    </div>
                     <div style={{display:"flex",gap:10,marginTop:6,flexWrap:"wrap",alignItems:"center"}}>
                       <span style={{fontSize:12,color:"#3b82f6"}}>🖥 {machine?.name}</span>
                       <span style={{fontSize:12,color:"#10b981"}}>👤 {op?.name}</span>
                       <span style={{fontSize:12,color:"#64748b"}}>Tahmini: {job.estimatedMinutes}dk</span>
                       {job.status==="running"&&<span style={{fontSize:12,color:"#f59e0b"}}>⏱ {elapsed} dk</span>}
                     </div>
+                    {reject>0&&<div style={{marginTop:6}}>
+                      <button onClick={()=>setDefectLogModal({item,wo})} style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:6,padding:"3px 10px",cursor:"pointer",color:"#ef4444",fontSize:11,fontWeight:600,fontFamily:"inherit"}}>
+                        🔴 {reject} Fire Kaydı — Detay
+                      </button>
+                    </div>}
                     <div style={{marginTop:6}}><PdfChips pdfs={item?.pdfs||[]} canEdit={hasPerm("production_edit")} onUpload={f=>wo&&addPdfToWoItem(wo.id,item.id,f,"Üretim")}/></div>
                   </div>
-                  <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap",flexDirection:"column",alignItems:"flex-end"}}>
+                    {hasPerm("production_edit")&&<Btn variant="danger" size="sm" icon={AlertTriangle} onClick={()=>{setDefectModal({woId:wo?.id,itemId:item?.id,productCode:item?.productCode,maxQty:goodQty});setDefectQty("");setDefectReason("");}}>Fire Bildir</Btn>}
                     {hasPerm("planning_edit")&&<Btn variant="ghost" size="sm" icon={Edit} onClick={()=>setRescheduleModal(job)}>Zamanla</Btn>}
                     {job.status==="assigned"&&hasPerm("production_edit")&&<Btn variant="success" size="sm" icon={Play} onClick={()=>startProduction(job.id)}>Başlat</Btn>}
                     {job.status==="running"&&hasPerm("production_edit")&&<Btn variant="danger" size="sm" icon={Square} onClick={()=>stopProduction(job.id)}>Bitir</Btn>}
@@ -1754,22 +2007,105 @@ function App() {
             );
           })}
         </Card>
-        {done.length>0&&<Card><h3 style={{margin:"0 0 14px",color:"#f1f5f9",fontSize:15,fontWeight:600}}>Tamamlanan ({done.length})</h3>{done.map(job=>{const wo=workOrders.find(w=>w.id===job.woId);const item=wo?.items.find(i=>i.id===job.itemId);const dur=job.startTime&&job.endTime?Math.floor((new Date(job.endTime)-new Date(job.startTime))/60000):0;return(<div key={job.id} style={{padding:10,borderRadius:8,background:"rgba(16,185,129,0.05)",border:"1px solid rgba(16,185,129,0.1)",marginBottom:6,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:13,fontWeight:600,color:"#e2e8f0"}}>{item?.productCode||`Ø${item?.diameter} ${item?.islem||""}`} — {wo?.customerName}</span><div style={{display:"flex",gap:8,alignItems:"center"}}><span style={{fontSize:12,color:"#10b981"}}>✓ {dur}dk</span><Badge color="#10b981" bg="rgba(16,185,129,0.15)">Bitti</Badge></div></div>);})}</Card>}
+        {done.length>0&&<Card><h3 style={{margin:"0 0 14px",color:"#f1f5f9",fontSize:15,fontWeight:600}}>Tamamlanan ({done.length})</h3>{done.map(job=>{const wo=workOrders.find(w=>w.id===job.woId);const item=wo?.items.find(i=>i.id===job.itemId);const dur=job.startTime&&job.endTime?Math.floor((new Date(job.endTime)-new Date(job.startTime))/60000):0;const reject=Number(item?.rejectQty)||0;const goodQty=(item?.qty||0)-reject;return(<div key={job.id} style={{padding:10,borderRadius:8,background:"rgba(16,185,129,0.05)",border:"1px solid rgba(16,185,129,0.1)",marginBottom:6,display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><span style={{fontSize:13,fontWeight:600,color:"#e2e8f0"}}>{item?.productCode||`Ø${item?.diameter} ${item?.islem||""}`} — {wo?.customerName}</span>{reject>0&&<span style={{fontSize:11,color:"#ef4444",marginLeft:8,fontWeight:600}}>({goodQty}/{item?.qty} — {reject} fire)</span>}</div><div style={{display:"flex",gap:8,alignItems:"center"}}>{reject>0&&<button onClick={()=>setDefectLogModal({item,wo})} style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.2)",borderRadius:5,padding:"2px 8px",cursor:"pointer",color:"#ef4444",fontSize:10,fontWeight:600,fontFamily:"inherit"}}>Fire Log</button>}<span style={{fontSize:12,color:"#10b981"}}>✓ {dur}dk</span><Badge color="#10b981" bg="rgba(16,185,129,0.15)">Bitti</Badge></div></div>);})}</Card>}
+
+        {/* DEFECT REPORT MODAL */}
+        {defectModal&&(
+          <Modal title="🔴 Fire Bildirimi" onClose={()=>setDefectModal(null)} width={450}>
+            <div style={{fontSize:13,color:"#94a3b8",marginBottom:14}}>
+              <strong style={{color:"#e2e8f0"}}>{defectModal.productCode}</strong> — Maks. bildirilebilir: <strong style={{color:"#f59e0b"}}>{defectModal.maxQty} adet</strong>
+            </div>
+            <div style={{display:"grid",gap:12,marginBottom:16}}>
+              <Input label="Fire Adedi" type="number" value={defectQty} onChange={setDefectQty} placeholder="Kaç adet?"/>
+              <div>
+                <div style={{fontSize:11,fontWeight:600,color:"#94a3b8",marginBottom:4}}>Sebep</div>
+                <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:6}}>
+                  {DEFECT_REASONS.map(r=>(
+                    <button key={r} onClick={()=>setDefectReason(r)} style={{
+                      padding:"4px 10px",borderRadius:6,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",
+                      background:defectReason===r?"rgba(239,68,68,0.2)":"rgba(255,255,255,0.04)",
+                      border:`1px solid ${defectReason===r?"rgba(239,68,68,0.4)":"rgba(255,255,255,0.08)"}`,
+                      color:defectReason===r?"#ef4444":"#94a3b8"
+                    }}>{r}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+              <Btn variant="ghost" onClick={()=>setDefectModal(null)}>İptal</Btn>
+              <Btn variant="danger" icon={AlertTriangle}
+                disabled={!defectQty||Number(defectQty)<=0||Number(defectQty)>defectModal.maxQty||!defectReason}
+                onClick={()=>{reportDefect(defectModal.woId,defectModal.itemId,Number(defectQty),defectReason,"Üretim");setDefectModal(null);}}>
+                {defectQty?`${defectQty} Adet Fire Kaydet`:"Fire Kaydet"}
+              </Btn>
+            </div>
+          </Modal>
+        )}
+
+        {/* DEFECT LOG MODAL */}
+        {defectLogModal&&<Modal title={"Fire Kayıtları — "+(defectLogModal.item?.productCode||"")} onClose={()=>setDefectLogModal(null)} width={550}>
+              <div style={{display:"flex",gap:16,marginBottom:16}}>
+                <div style={{padding:12,borderRadius:10,background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.2)",flex:1,textAlign:"center"}}>
+                  <div style={{fontSize:11,color:"#ef4444",fontWeight:600}}>Toplam Fire</div>
+                  <div style={{fontSize:24,fontWeight:800,color:"#ef4444"}}>{Number(defectLogModal.item?.rejectQty||0)}</div>
+                </div>
+                <div style={{padding:12,borderRadius:10,background:"rgba(16,185,129,0.08)",border:"1px solid rgba(16,185,129,0.2)",flex:1,textAlign:"center"}}>
+                  <div style={{fontSize:11,color:"#10b981",fontWeight:600}}>Sağlam</div>
+                  <div style={{fontSize:24,fontWeight:800,color:"#10b981"}}>{(defectLogModal.item?.qty||0)-Number(defectLogModal.item?.rejectQty||0)}</div>
+                </div>
+                <div style={{padding:12,borderRadius:10,background:"rgba(59,130,246,0.08)",border:"1px solid rgba(59,130,246,0.2)",flex:1,textAlign:"center"}}>
+                  <div style={{fontSize:11,color:"#3b82f6",fontWeight:600}}>Sipariş</div>
+                  <div style={{fontSize:24,fontWeight:800,color:"#3b82f6"}}>{defectLogModal.item?.qty}</div>
+                </div>
+              </div>
+              {(defectLogModal.item?.defectLog||[]).length===0?<div style={{textAlign:"center",padding:20,color:"#64748b"}}>Kayıt yok</div>
+              :<div>{(defectLogModal.item?.defectLog||[]).map((log,i)=>(
+                <div key={i} style={{padding:10,borderRadius:8,background:"rgba(239,68,68,0.04)",border:"1px solid rgba(239,68,68,0.1)",marginBottom:6}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{fontSize:14,fontWeight:700,color:"#ef4444"}}>-{log.qty} ad</span>
+                      <Badge color="#ef4444" bg="rgba(239,68,68,0.12)">{log.reason}</Badge>
+                      <Badge color="#6366f1" bg="rgba(99,102,241,0.12)">{log.stage}</Badge>
+                    </div>
+                    <div style={{fontSize:11,color:"#64748b"}}>{fmtDateTime(log.date)} — {log.reportedBy}</div>
+                  </div>
+                </div>
+              ))}</div>}
+        </Modal>}
       </div>
     );
   };
 
-  // ═══ QC ═══
+  //  QC 
   const QCPage = () => {
     const qcItems=workOrders.flatMap(wo=>wo.items.filter(it=>it.woStatus==="qc").map(it=>({...it,woId:wo.id,customerName:wo.customerName,orderType:wo.orderType,qcChecks:it.qcChecks||{dimensionOk:false,surfaceOk:false,runoutOk:false,visualOk:false}})));
+    const [qcDefectModal, setQcDefectModal] = useState(null);
+    const [qcDefectQty, setQcDefectQty] = useState("");
+    const [qcDefectReason, setQcDefectReason] = useState("");
+    const DEFECT_REASONS_QC = ["Ölçü dışı","Yüzey hatası","Salgı hatası","Çapak","Kırık/Çatlak","Diğer"];
     return(
       <div>
         <h2 style={{margin:"0 0 20px",color:"#f1f5f9",fontSize:22,fontWeight:700}}>Kalite Kontrol</h2>
         {qcItems.length===0?<Card style={{textAlign:"center",padding:40}}><CheckCircle2 size={40} color="#475569" style={{marginBottom:12}}/><div style={{color:"#64748b",fontSize:14}}>KK bekleyen ürün yok.</div></Card>
-        :qcItems.map(item=>(
+        :qcItems.map(item=>{
+          const reject=Number(item.rejectQty)||0;
+          const goodQty=(item.qty||0)-reject;
+          return(
           <Card key={item.id} style={{marginBottom:12}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><OrderTypeBadge type={item.orderType}/><span style={{fontSize:14,fontWeight:700,color:"#e2e8f0"}}>{item.productCode||`Ø${item.diameter} ${item.islem}`}</span><span style={{fontSize:12,color:"#64748b"}}>{item.customerName} | {item.qty} ad</span>
-            <button onClick={()=>{const wo=workOrders.find(w=>w.id===item.woId);if(wo)setWoDetail(wo);}} style={{background:"none",border:"none",color:"#6366f1",cursor:"pointer",fontWeight:600,fontSize:11,textDecoration:"underline",fontFamily:"inherit"}}>{item.woId}</button>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10,flexWrap:"wrap"}}>
+              <OrderTypeBadge type={item.orderType}/>
+              <span style={{fontSize:14,fontWeight:700,color:"#e2e8f0"}}>{item.productCode||`Ø${item.diameter} ${item.islem}`}</span>
+              <span style={{fontSize:12,color:"#64748b"}}>{item.customerName}</span>
+              {reject>0?(
+                <span style={{fontSize:12}}>
+                  <span style={{color:"#10b981",fontWeight:700}}>{goodQty}</span>
+                  <span style={{color:"#64748b"}}>/{item.qty} ad</span>
+                  <span style={{color:"#ef4444",fontWeight:600,marginLeft:4}}>({reject} fire)</span>
+                </span>
+              ):(
+                <span style={{fontSize:12,color:"#64748b"}}>{item.qty} ad</span>
+              )}
+              <button onClick={()=>{const wo=workOrders.find(w=>w.id===item.woId);if(wo)setWoDetail(wo);}} style={{background:"none",border:"none",color:"#6366f1",cursor:"pointer",fontWeight:600,fontSize:11,textDecoration:"underline",fontFamily:"inherit"}}>{item.woId}</button>
             </div>
             <div style={{marginBottom:10}}><PdfChips pdfs={item.pdfs||[]} canEdit={hasPerm("qc_edit")} onUpload={f=>addPdfToWoItem(item.woId,item.id,f,"Kalite Kontrol")}/></div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginBottom:12}}>
@@ -1779,14 +2115,48 @@ function App() {
                 </label>
               ))}
             </div>
-            {hasPerm("qc_edit")&&<Btn variant="success" icon={Check} onClick={()=>completeQC(item.woId,item.id,item.qcChecks)} disabled={!Object.values(item.qcChecks).every(Boolean)}>KK Onayla → Lazer</Btn>}
+            <div style={{display:"flex",gap:8}}>
+              {hasPerm("qc_edit")&&<Btn variant="success" icon={Check} onClick={()=>completeQC(item.woId,item.id,item.qcChecks)} disabled={!Object.values(item.qcChecks).every(Boolean)}>KK Onayla → Lazer</Btn>}
+              {hasPerm("qc_edit")&&<Btn variant="danger" size="sm" icon={AlertTriangle} onClick={()=>{setQcDefectModal({woId:item.woId,itemId:item.id,productCode:item.productCode,maxQty:goodQty});setQcDefectQty("");setQcDefectReason("");}}>Fire Bildir</Btn>}
+            </div>
           </Card>
-        ))}
+        );})}
+        {qcDefectModal&&(
+          <Modal title="🔴 KK Fire Bildirimi" onClose={()=>setQcDefectModal(null)} width={450}>
+            <div style={{fontSize:13,color:"#94a3b8",marginBottom:14}}>
+              <strong style={{color:"#e2e8f0"}}>{qcDefectModal.productCode}</strong> — Maks: <strong style={{color:"#f59e0b"}}>{qcDefectModal.maxQty} adet</strong>
+            </div>
+            <div style={{display:"grid",gap:12,marginBottom:16}}>
+              <Input label="Fire Adedi" type="number" value={qcDefectQty} onChange={setQcDefectQty} placeholder="Kaç adet?"/>
+              <div>
+                <div style={{fontSize:11,fontWeight:600,color:"#94a3b8",marginBottom:4}}>Sebep</div>
+                <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                  {DEFECT_REASONS_QC.map(r=>(
+                    <button key={r} onClick={()=>setQcDefectReason(r)} style={{
+                      padding:"4px 10px",borderRadius:6,fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",
+                      background:qcDefectReason===r?"rgba(239,68,68,0.2)":"rgba(255,255,255,0.04)",
+                      border:`1px solid ${qcDefectReason===r?"rgba(239,68,68,0.4)":"rgba(255,255,255,0.08)"}`,
+                      color:qcDefectReason===r?"#ef4444":"#94a3b8"
+                    }}>{r}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+              <Btn variant="ghost" onClick={()=>setQcDefectModal(null)}>İptal</Btn>
+              <Btn variant="danger" icon={AlertTriangle}
+                disabled={!qcDefectQty||Number(qcDefectQty)<=0||Number(qcDefectQty)>qcDefectModal.maxQty||!qcDefectReason}
+                onClick={()=>{reportDefect(qcDefectModal.woId,qcDefectModal.itemId,Number(qcDefectQty),qcDefectReason,"Kalite Kontrol");setQcDefectModal(null);}}>
+                {qcDefectQty?`${qcDefectQty} Adet Fire Kaydet`:"Fire Kaydet"}
+              </Btn>
+            </div>
+          </Modal>
+        )}
       </div>
     );
   };
 
-  // ═══ COATING ═══
+  //  COATING 
   const CoatingPage = () => {
     const [selectedItems, setSelectedItems] = useState([]);
     const [printDispatch, setPrintDispatch] = useState(null);
@@ -1973,7 +2343,7 @@ function App() {
     );
   };
 
-  // ═══ SHIPPING ═══
+  //  SHIPPING 
   const ShippingPage = () => {
     const ready=workOrders.filter(wo=>wo.items.some(it=>it.woStatus==="shipping"));
     return(
@@ -1983,12 +2353,33 @@ function App() {
         :ready.map(wo=>(
           <Card key={wo.id} style={{marginBottom:12}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><div style={{display:"flex",alignItems:"center",gap:8}}><button onClick={()=>setWoDetail(wo)} style={{background:"none",border:"none",color:"#6366f1",cursor:"pointer",fontWeight:700,fontSize:15,textDecoration:"underline",fontFamily:"inherit"}}>{wo.id}</button><OrderTypeBadge type={wo.orderType}/><span style={{fontSize:13,color:"#64748b"}}>{wo.customerName}</span></div><PriorityBadge priority={wo.priority}/></div>
-            {wo.items.filter(it=>it.woStatus==="shipping").map(item=>(
-              <div key={item.id} style={{padding:8,borderRadius:8,background:"rgba(255,255,255,0.02)",marginBottom:5}}>
-                <div style={{display:"flex",justifyContent:"space-between",fontSize:13,color:"#e2e8f0"}}><span>{item.productCode||`Ø${item.diameter} ${item.islem||""}`} — {item.qty} ad</span><Badge color="#10b981" bg="rgba(16,185,129,0.15)">Hazır</Badge></div>
+            {wo.items.filter(it=>it.woStatus==="shipping").map(item=>{
+              const reject=Number(item.rejectQty)||0;
+              const goodQty=(item.qty||0)-reject;
+              return(
+              <div key={item.id} style={{padding:10,borderRadius:8,background:reject>0?"rgba(245,158,11,0.04)":"rgba(255,255,255,0.02)",border:`1px solid ${reject>0?"rgba(245,158,11,0.15)":"rgba(255,255,255,0.06)"}`,marginBottom:5}}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:13,color:"#e2e8f0",alignItems:"center"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+                    <span style={{fontWeight:600}}>{item.productCode||`Ø${item.diameter} ${item.islem||""}`}</span>
+                    {reject>0?(
+                      <span>
+                        <span style={{color:"#f59e0b",fontWeight:700}}>{goodQty}</span>
+                        <span style={{color:"#64748b"}}>/{item.qty} ad</span>
+                        <span style={{color:"#ef4444",fontSize:11,marginLeft:4}}>({reject} fire)</span>
+                      </span>
+                    ):(
+                      <span style={{color:"#94a3b8"}}>{item.qty} ad</span>
+                    )}
+                  </div>
+                  {reject>0?(
+                    <Badge color="#f59e0b" bg="rgba(245,158,11,0.15)">⚠ Eksik Teslim</Badge>
+                  ):(
+                    <Badge color="#10b981" bg="rgba(16,185,129,0.15)">Hazır ✓</Badge>
+                  )}
+                </div>
                 <div style={{marginTop:4}}><PdfChips pdfs={item.pdfs||[]} canEdit={hasPerm("shipping_edit")} onUpload={f=>addPdfToWoItem(wo.id,item.id,f,"Sevkiyat")}/></div>
               </div>
-            ))}
+            );})}
             {hasPerm("shipping_edit")&&<div style={{display:"flex",gap:8,marginTop:10}}><Btn variant="success" icon={Truck} onClick={()=>completeShipping(wo.id)}>Sevk Et & Fatura</Btn></div>}
           </Card>
         ))}
@@ -1997,8 +2388,8 @@ function App() {
     );
   };
 
-  // ═══ STOCK ═══
-  // ═══ CUTTING PAGE ═══
+  //  STOCK 
+  //  CUTTING PAGE 
   const CuttingPage = () => {
     const [cutModal, setCutModal] = useState(null);
     const pendingCut = workOrders
@@ -2222,10 +2613,25 @@ function App() {
     );
   };
 
-  // ═══ GRINDING PAGE (Taşlama) ═══
+  //  GRINDING PAGE (Taşlama) 
   const GrindingPage = () => {
     const [karesModal, setKaresModal] = useState(null);
     const [selectedKares, setSelectedKares] = useState([]);
+    const [localGrind, setLocalGrind] = useState({});
+    const grindKey = (woId, itemId, field) => `${woId}_${itemId}_${field}`;
+    const getGrindVal = (woId, itemId, field, fallback) => {
+      const k = grindKey(woId, itemId, field);
+      return k in localGrind ? localGrind[k] : (fallback || "");
+    };
+    const setGrindVal = (woId, itemId, field, val) => {
+      setLocalGrind(p => ({...p, [grindKey(woId, itemId, field)]: val}));
+    };
+    const syncGrindVal = (woId, itemId, field) => {
+      const k = grindKey(woId, itemId, field);
+      if (k in localGrind) {
+        updateKaresDispatchFields(woId, itemId, {[field]: localGrind[k]});
+      }
+    };
 
     // Studer / S22 internal grinding items
     const internalItems = workOrders.filter(wo => wo.orderType === "production")
@@ -2250,14 +2656,33 @@ function App() {
 
     const canCreateKaresWaybill = () => {
       const items = karesDispatch.filter(it => isKaresSelected(it.woId, it.id));
-      return items.length > 0 && items.every(it => it.grindDiameter && it.grindLength);
+      return items.length > 0 && items.every(it => {
+        const dia = getGrindVal(it.woId, it.id, "grindDiameter", it.grindDiameter);
+        const len = getGrindVal(it.woId, it.id, "grindLength", it.grindLength);
+        return dia && len;
+      });
     };
 
     const handleCreateWaybill = () => {
+      // Sync all local grind values before creating waybill
       const items = karesDispatch.filter(it => isKaresSelected(it.woId, it.id));
-      if (items.length === 0) return;
-      createKaresWaybill(items);
-      setSelectedKares([]);
+      items.forEach(it => {
+        const updates = {};
+        const dia = getGrindVal(it.woId, it.id, "grindDiameter", it.grindDiameter);
+        const len = getGrindVal(it.woId, it.id, "grindLength", it.grindLength);
+        const tol = getGrindVal(it.woId, it.id, "grindTolerance", it.grindTolerance);
+        if (dia) updates.grindDiameter = dia;
+        if (len) updates.grindLength = len;
+        if (tol) updates.grindTolerance = tol;
+        if (Object.keys(updates).length > 0) updateKaresDispatchFields(it.woId, it.id, updates);
+      });
+      setTimeout(() => {
+        const items2 = karesDispatch.filter(it => isKaresSelected(it.woId, it.id));
+        if (items2.length === 0) return;
+        createKaresWaybill(items2);
+        setSelectedKares([]);
+        setLocalGrind({});
+      }, 50);
     };
 
     const selectAllKares = () => {
@@ -2284,9 +2709,9 @@ function App() {
             <div class="box" style="flex:1"><h3>GÖNDERİCİ</h3><div style="font-weight:bold">${d.sender?.name || MIHENG_INFO.name}</div><div>${d.sender?.address || MIHENG_INFO.address}</div></div>
             <div class="box" style="flex:1"><h3>ALICI</h3><div style="font-weight:bold">${d.receiver?.name || ""}</div><div>${d.receiver?.address || ""}</div></div>
           </div>
-          <table><thead><tr><th>#</th><th>İş Emri</th><th>Ürün</th><th>Hammadde Çapı</th><th>Takım Çapı</th><th>Taşlama Boyu</th><th>Adet</th></tr></thead><tbody>
-          ${d.items.map((it, i) => `<tr><td>${i + 1}</td><td>${it.woId}</td><td>${it.productCode}${it.toolCode ? " / " + it.toolCode : ""}</td><td>Ø${it.rawDiameter}mm</td><td>Ø${it.toolDiameter}mm</td><td>${it.grindLength}mm</td><td style="text-align:right;font-weight:bold">${it.qty}</td></tr>`).join("")}
-          <tr style="font-weight:bold;background:#f9f9f9"><td colspan="6" style="text-align:right">TOPLAM</td><td style="text-align:right">${d.items.reduce((s, it) => s + it.qty, 0)}</td></tr>
+          <table><thead><tr><th>#</th><th>İş Emri</th><th>Ürün</th><th>Hammadde Çapı</th><th>Takım Çapı</th><th>Tolerans</th><th>Taşlama Boyu</th><th>Adet</th></tr></thead><tbody>
+          ${d.items.map((it, i) => `<tr><td>${i + 1}</td><td>${it.woId}</td><td>${it.productCode}${it.toolCode ? " / " + it.toolCode : ""}</td><td>Ø${it.rawDiameter}mm</td><td>Ø${it.toolDiameter}mm</td><td>${it.grindTolerance || "-"}</td><td>${it.grindLength}mm</td><td style="text-align:right;font-weight:bold">${it.qty}</td></tr>`).join("")}
+          <tr style="font-weight:bold;background:#f9f9f9"><td colspan="7" style="text-align:right">TOPLAM</td><td style="text-align:right">${d.items.reduce((s, it) => s + it.qty, 0)}</td></tr>
           </tbody></table>
           <div class="footer"><div class="sign-box">Teslim Eden</div><div class="sign-box">Teslim Alan</div></div>
           </body></html>`);
@@ -2365,17 +2790,26 @@ function App() {
                     <div style={{fontSize:12,color:"#94a3b8",marginTop:4}}>
                       {item.customerName} | Hammadde Ø{item.diameter}mm | {item.qty} adet | {mc ? <span style={{fontWeight:600,color:mc.color}}>{mc.value}</span> : item.materialCode}
                     </div>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:8,maxWidth:360}}>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginTop:8,maxWidth:540}}>
                       <div>
                         <div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:2}}>Taşlama Çapı (mm)</div>
-                        <input type="number" value={item.grindDiameter || ""} placeholder={`${item.diameter}`}
-                          onChange={e => updateKaresDispatchFields(item.woId, item.id, { grindDiameter: e.target.value })}
+                        <LocalInput type="text" inputMode="decimal" value={getGrindVal(item.woId, item.id, "grindDiameter", item.grindDiameter)} placeholder={`${item.diameter}`}
+                          onChange={val => setGrindVal(item.woId, item.id, "grindDiameter", val)}
+                          onBlur={() => syncGrindVal(item.woId, item.id, "grindDiameter")}
                           style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(239,68,68,0.3)",background:"rgba(239,68,68,0.06)",color:"#e2e8f0",fontSize:13,fontFamily:"inherit"}}/>
                       </div>
                       <div>
+                        <div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:2}}>Tolerans</div>
+                        <LocalInput type="text" value={getGrindVal(item.woId, item.id, "grindTolerance", item.grindTolerance)} placeholder="h6, ±0.01..."
+                          onChange={val => setGrindVal(item.woId, item.id, "grindTolerance", val)}
+                          onBlur={() => syncGrindVal(item.woId, item.id, "grindTolerance")}
+                          style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(168,85,247,0.3)",background:"rgba(168,85,247,0.06)",color:"#e2e8f0",fontSize:13,fontFamily:"inherit"}}/>
+                      </div>
+                      <div>
                         <div style={{fontSize:10,fontWeight:600,color:"#94a3b8",marginBottom:2}}>Taşlama Boyu (mm)</div>
-                        <input type="number" value={item.grindLength || ""} placeholder={`${item.length}`}
-                          onChange={e => updateKaresDispatchFields(item.woId, item.id, { grindLength: e.target.value })}
+                        <LocalInput type="text" inputMode="decimal" value={getGrindVal(item.woId, item.id, "grindLength", item.grindLength)} placeholder={`${item.length}`}
+                          onChange={val => setGrindVal(item.woId, item.id, "grindLength", val)}
+                          onBlur={() => syncGrindVal(item.woId, item.id, "grindLength")}
                           style={{width:"100%",padding:"6px 8px",borderRadius:6,border:"1px solid rgba(239,68,68,0.3)",background:"rgba(239,68,68,0.06)",color:"#e2e8f0",fontSize:13,fontFamily:"inherit"}}/>
                       </div>
                     </div>
@@ -2446,6 +2880,7 @@ function App() {
                   <th style={{padding:"5px 8px",textAlign:"left",color:"#64748b"}}>Ürün</th>
                   <th style={{padding:"5px 8px",textAlign:"center",color:"#64748b"}}>Hammadde Çapı</th>
                   <th style={{padding:"5px 8px",textAlign:"center",color:"#64748b"}}>Takım Çapı</th>
+                  <th style={{padding:"5px 8px",textAlign:"center",color:"#64748b"}}>Tolerans</th>
                   <th style={{padding:"5px 8px",textAlign:"center",color:"#64748b"}}>Taşlama Boyu</th>
                   <th style={{padding:"5px 8px",textAlign:"right",color:"#64748b"}}>Adet</th>
                 </tr></thead>
@@ -2455,12 +2890,13 @@ function App() {
                     <td style={{padding:"5px 8px",color:"#e2e8f0"}}>{it.productCode}{it.toolCode ? <span style={{color:"#f59e0b",marginLeft:6}}>{it.toolCode}</span> : null}</td>
                     <td style={{padding:"5px 8px",textAlign:"center",color:"#94a3b8"}}>Ø{it.rawDiameter}mm</td>
                     <td style={{padding:"5px 8px",textAlign:"center",color:"#e2e8f0",fontWeight:600}}>Ø{it.toolDiameter}mm</td>
+                    <td style={{padding:"5px 8px",textAlign:"center",color:"#a855f7",fontWeight:600}}>{it.grindTolerance||"-"}</td>
                     <td style={{padding:"5px 8px",textAlign:"center",color:"#e2e8f0",fontWeight:600}}>{it.grindLength}mm</td>
                     <td style={{padding:"5px 8px",textAlign:"right",color:"#e2e8f0",fontWeight:600}}>{it.qty}</td>
                   </tr>
                 ))}</tbody>
                 <tfoot><tr style={{borderTop:"1px solid rgba(255,255,255,0.08)"}}>
-                  <td colSpan={5} style={{padding:"5px 8px",textAlign:"right",fontWeight:600,color:"#64748b"}}>Toplam</td>
+                  <td colSpan={6} style={{padding:"5px 8px",textAlign:"right",fontWeight:600,color:"#64748b"}}>Toplam</td>
                   <td style={{padding:"5px 8px",textAlign:"right",fontWeight:700,color:"#e2e8f0"}}>{d.items.reduce((s, it) => s + it.qty, 0)}</td>
                 </tr></tfoot>
               </table>
@@ -2476,7 +2912,7 @@ function App() {
     );
   };
 
-  // ═══ PURCHASING PAGE ═══
+  //  PURCHASING PAGE 
   const PurchasingPage = () => {
     const pending = purchaseRequests.filter(pr => pr.status === "pending");
     const ordered = purchaseRequests.filter(pr => pr.status === "ordered");
@@ -2566,7 +3002,7 @@ function App() {
     );
   };
 
-  // ═══ STOCK PAGE (Tam Çubuk + Fire) ═══
+  //  STOCK PAGE (Tam Çubuk + Fire) 
   const StockPage = () => {
     const [stockTab, setStockTab] = useState("bars");
     const [filterGrade, setFilterGrade] = useState("");
@@ -2679,30 +3115,166 @@ function App() {
     );
   };
 
-  const MachinesPage = () => (<div><h2 style={{margin:"0 0 20px",color:"#f1f5f9",fontSize:22,fontWeight:700}}>Makinalar</h2><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:14}}>{machines.map(m=>{const j=productionJobs.filter(x=>x.machineId===m.id&&x.status!=="completed");return <Card key={m.id}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><div style={{display:"flex",alignItems:"center",gap:8}}><Monitor size={18} color="#3b82f6"/><span style={{fontSize:14,fontWeight:700,color:"#e2e8f0"}}>{m.name}</span></div><Badge color={j.length>0?"#3b82f6":"#10b981"} bg={j.length>0?"rgba(59,130,246,0.15)":"rgba(16,185,129,0.15)"}>{j.length>0?`${j.length} İş`:"Boş"}</Badge></div><div style={{fontSize:12,color:"#64748b",marginBottom:6}}>Tip: {m.type}</div>{j.map(job=>{const wo=workOrders.find(w=>w.id===job.woId);const it=wo?.items.find(i=>i.id===job.itemId);return <div key={job.id} style={{padding:7,borderRadius:6,background:"rgba(59,130,246,0.08)",marginBottom:4,fontSize:12,color:"#94a3b8"}}>{it?.productCode||`Ø${it?.diameter}`} — {it?.qty}ad ({job.estimatedMinutes}dk)</div>;})}</Card>;})}</div></div>);
+  const MachinesPage = () => {
+    const [editM,setEditM]=useState(null);
+    const [newM,setNewM]=useState(false);
+    const [mName,setMName]=useState("");
+    const [mType,setMType]=useState("CNC");
+    const startEditM = m => { setEditM(m); setMName(m.name); setMType(m.type); };
+    const saveM = () => {
+      if(editM) setMachines(p=>p.map(m=>m.id===editM.id?{...m,name:mName,type:mType}:m));
+      else { const id="M"+Date.now(); setMachines(p=>[...p,{id,name:mName,type:mType,status:"active"}]); }
+      setEditM(null); setNewM(false); setMName(""); setMType("CNC");
+    };
+    const deleteM = id => { if(productionJobs.some(j=>j.machineId===id&&j.status!=="completed")) return alert("Aktif işi olan makina silinemez!"); setMachines(p=>p.filter(m=>m.id!==id)); };
+    return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <h2 style={{margin:0,color:"#f1f5f9",fontSize:22,fontWeight:700}}>Makinalar</h2>
+        {hasPerm("admin")&&<Btn icon={Plus} onClick={()=>{setNewM(true);setMName("");setMType("CNC");}}>Yeni Makina</Btn>}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:14}}>
+        {machines.map(m=>{const j=productionJobs.filter(x=>x.machineId===m.id&&x.status!=="completed");return(
+          <Card key={m.id}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}><Monitor size={18} color="#3b82f6"/><span style={{fontSize:14,fontWeight:700,color:"#e2e8f0"}}>{m.name}</span></div>
+              <div style={{display:"flex",gap:4,alignItems:"center"}}>
+                <Badge color={j.length>0?"#3b82f6":"#10b981"} bg={j.length>0?"rgba(59,130,246,0.15)":"rgba(16,185,129,0.15)"}>{j.length>0?`${j.length} İş`:"Boş"}</Badge>
+                {hasPerm("admin")&&<button onClick={()=>startEditM(m)} style={{background:"none",border:"none",cursor:"pointer",color:"#64748b",padding:2}}><Edit size={13}/></button>}
+                {hasPerm("admin")&&j.length===0&&<button onClick={()=>deleteM(m.id)} style={{background:"none",border:"none",cursor:"pointer",color:"#ef4444",padding:2}}><Trash2 size={13}/></button>}
+              </div>
+            </div>
+            <div style={{fontSize:12,color:"#64748b",marginBottom:6}}>Tip: {m.type}</div>
+            {j.map(job=>{const wo=workOrders.find(w=>w.id===job.woId);const it=wo?.items.find(i=>i.id===job.itemId);return <div key={job.id} style={{padding:7,borderRadius:6,background:"rgba(59,130,246,0.08)",marginBottom:4,fontSize:12,color:"#94a3b8"}}>{it?.productCode||`Ø${it?.diameter}`} — {it?.qty}ad ({job.estimatedMinutes}dk)</div>;})}
+          </Card>
+        );})}
+      </div>
+      {(editM||newM)&&<Modal title={editM?"Makina Düzenle":"Yeni Makina Ekle"} onClose={()=>{setEditM(null);setNewM(false);}} width={400}>
+        <Input label="Makina Adı" value={mName} onChange={setMName} placeholder="S20-4"/>
+        <div style={{marginTop:12}}><Input label="Tip" value={mType} onChange={setMType} options={[{value:"CNC",label:"CNC"},{value:"Taşlama",label:"Taşlama"},{value:"Lazer",label:"Lazer"},{value:"Kesim",label:"Kesim"},{value:"Diğer",label:"Diğer"}]}/></div>
+        <div style={{marginTop:16,display:"flex",justifyContent:"flex-end"}}><Btn variant="primary" icon={Save} onClick={saveM} disabled={!mName.trim()}>Kaydet</Btn></div>
+      </Modal>}
+    </div>
+  );};
 
-  const OperatorsPage = () => (<div><h2 style={{margin:"0 0 20px",color:"#f1f5f9",fontSize:22,fontWeight:700}}>Operatörler</h2><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14}}>{operators.map(op=>{const j=productionJobs.filter(x=>x.operatorId===op.id&&x.status!=="completed").length;const d=productionJobs.filter(x=>x.operatorId===op.id&&x.status==="completed").length;return <Card key={op.id}><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}><div style={{width:36,height:36,borderRadius:9,background:"rgba(59,130,246,0.15)",display:"flex",alignItems:"center",justifyContent:"center",color:"#3b82f6",fontWeight:700,fontSize:15}}>{op.name[0]}</div><div><div style={{fontSize:14,fontWeight:600,color:"#e2e8f0"}}>{op.name}</div><div style={{fontSize:12,color:"#64748b"}}>{op.role} — {op.shift}</div></div></div><div style={{display:"flex",gap:14,fontSize:12,color:"#94a3b8"}}><span>Aktif: <strong style={{color:"#3b82f6"}}>{j}</strong></span><span>Biten: <strong style={{color:"#10b981"}}>{d}</strong></span></div></Card>;})}</div></div>);
+  const OperatorsPage = () => {
+    const [editOp,setEditOp]=useState(null);
+    const [newOp,setNewOp]=useState(false);
+    const [opName,setOpName]=useState("");
+    const [opRole,setOpRole]=useState("CNC Operatör");
+    const [opShift,setOpShift]=useState("Gündüz");
+    const startEditOp = op => { setEditOp(op); setOpName(op.name); setOpRole(op.role); setOpShift(op.shift); };
+    const saveOp = () => {
+      if(editOp) setOperators(p=>p.map(o=>o.id===editOp.id?{...o,name:opName,role:opRole,shift:opShift}:o));
+      else { const id="O"+Date.now(); setOperators(p=>[...p,{id,name:opName,role:opRole,shift:opShift}]); }
+      setEditOp(null); setNewOp(false); setOpName(""); setOpRole("CNC Operatör"); setOpShift("Gündüz");
+    };
+    const deleteOp = id => { if(productionJobs.some(j=>j.operatorId===id&&j.status!=="completed")) return alert("Aktif işi olan operatör silinemez!"); setOperators(p=>p.filter(o=>o.id!==id)); };
+    return(
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <h2 style={{margin:0,color:"#f1f5f9",fontSize:22,fontWeight:700}}>Operatörler</h2>
+        {hasPerm("admin")&&<Btn icon={Plus} onClick={()=>{setNewOp(true);setOpName("");setOpRole("CNC Operatör");setOpShift("Gündüz");}}>Yeni Operatör</Btn>}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:14}}>
+        {operators.map(op=>{
+          const activeJ=productionJobs.filter(x=>x.operatorId===op.id&&x.status!=="completed").length;
+          const doneJ=productionJobs.filter(x=>x.operatorId===op.id&&x.status==="completed").length;
+          return(
+          <Card key={op.id}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+              <div style={{width:36,height:36,borderRadius:9,background:"rgba(59,130,246,0.15)",display:"flex",alignItems:"center",justifyContent:"center",color:"#3b82f6",fontWeight:700,fontSize:15}}>{op.name[0]}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:14,fontWeight:600,color:"#e2e8f0"}}>{op.name}</div>
+                <div style={{fontSize:12,color:"#64748b"}}>{op.role} — {op.shift}</div>
+              </div>
+              <div style={{display:"flex",gap:4}}>
+                {hasPerm("admin")&&<button onClick={()=>startEditOp(op)} style={{background:"none",border:"none",cursor:"pointer",color:"#64748b",padding:2}}><Edit size={13}/></button>}
+                {hasPerm("admin")&&activeJ===0&&<button onClick={()=>deleteOp(op.id)} style={{background:"none",border:"none",cursor:"pointer",color:"#ef4444",padding:2}}><Trash2 size={13}/></button>}
+              </div>
+            </div>
+            <div style={{display:"flex",gap:14,fontSize:12,color:"#94a3b8"}}><span>Aktif: <strong style={{color:"#3b82f6"}}>{activeJ}</strong></span><span>Biten: <strong style={{color:"#10b981"}}>{doneJ}</strong></span></div>
+          </Card>
+        );})}
+      </div>
+      {(editOp||newOp)&&<Modal title={editOp?"Operatör Düzenle":"Yeni Operatör Ekle"} onClose={()=>{setEditOp(null);setNewOp(false);}} width={400}>
+        <Input label="İsim" value={opName} onChange={setOpName} placeholder="Ad Soyad"/>
+        <div style={{marginTop:12}}><Input label="Görev" value={opRole} onChange={setOpRole} options={[{value:"CNC Operatör",label:"CNC Operatör"},{value:"Taşlamacı",label:"Taşlamacı"},{value:"Kesimci",label:"Kesimci"},{value:"Lazer Operatör",label:"Lazer Operatör"},{value:"Kalite Kontrol",label:"Kalite Kontrol"},{value:"Diğer",label:"Diğer"}]}/></div>
+        <div style={{marginTop:12}}><Input label="Vardiya" value={opShift} onChange={setOpShift} options={[{value:"Gündüz",label:"Gündüz"},{value:"Gece",label:"Gece"},{value:"Tam Gün",label:"Tam Gün"}]}/></div>
+        <div style={{marginTop:16,display:"flex",justifyContent:"flex-end"}}><Btn variant="primary" icon={Save} onClick={saveOp} disabled={!opName.trim()}>Kaydet</Btn></div>
+      </Modal>}
+    </div>
+  );};
 
-  // ═══ USER MANAGEMENT ═══
+  //  USER MANAGEMENT 
   const UserMgmtPage = () => {
     const [editUser,setEditUser]=useState(null);
     const [editPerms,setEditPerms]=useState([]);
-    const startEdit = u => { setEditUser(u); setEditPerms(DEFAULT_ROLES[u.role]?.permissions||[]); };
+    const [editMode,setEditMode]=useState(null); // "perms" | "user" | "new"
+    const [euName,setEuName]=useState("");
+    const [euUsername,setEuUsername]=useState("");
+    const [euPassword,setEuPassword]=useState("");
+    const [euRole,setEuRole]=useState("operator");
+    const startEdit = u => { setEditUser(u); setEditPerms(userPerms[u.id] || DEFAULT_ROLES[u.role]?.permissions||[]); setEditMode("perms"); };
+    const startEditUser = u => { setEditUser(u); setEuName(u.name); setEuUsername(u.username); setEuPassword(u.password); setEuRole(u.role); setEditMode("user"); };
+    const startNewUser = () => { setEditUser(null); setEuName(""); setEuUsername(""); setEuPassword("1234"); setEuRole("operator"); setEditMode("new"); };
+    const savePerms = () => { 
+      const newPerms = {...userPerms, [editUser.id]: editPerms};
+      setUserPerms(newPerms); 
+      try { localStorage.setItem("mihenkUserPerms", JSON.stringify(newPerms)); } catch(e){}
+      // Update current user's effective permissions if editing self
+      if(currentUser?.id===editUser.id) {
+        setCurrentUser(p=>({...p})); // trigger re-eval of hasPerm
+      }
+      setEditMode(null); setEditUser(null); 
+    };
+    const saveUser = () => {
+      if(!euName.trim()||!euUsername.trim()||!euPassword.trim()) return;
+      let newUsers;
+      if(editMode==="new"){
+        const id="U"+Date.now();
+        const nu={id,name:euName.trim(),username:euUsername.trim(),password:euPassword,role:euRole,avatar:euName.trim()[0].toUpperCase()};
+        newUsers=[...users,nu];
+      } else if(editUser) {
+        newUsers=users.map(u=>u.id===editUser.id?{...u,name:euName.trim(),username:euUsername.trim(),password:euPassword,role:euRole,avatar:euName.trim()[0].toUpperCase()}:u);
+        // Update currentUser if editing self
+        if(currentUser?.id===editUser.id) setCurrentUser(p=>({...p,name:euName.trim(),username:euUsername.trim(),password:euPassword,role:euRole,avatar:euName.trim()[0].toUpperCase()}));
+      }
+      if(newUsers) { setUsers(newUsers); try { localStorage.setItem("mihenkUsers", JSON.stringify(newUsers)); } catch(e){} }
+      setEditMode(null); setEditUser(null);
+    };
+    const deleteUser = uid => {
+      if(uid===currentUser?.id) return alert("Kendinizi silemezsiniz!");
+      if(!confirm(`Bu kullanıcıyı silmek istediğinize emin misiniz?`)) return;
+      setUsers(p=>p.filter(u=>u.id!==uid));
+      setUserPerms(p=>{const np={...p}; delete np[uid]; return np;});
+    };
     return(
       <div>
-        <h2 style={{margin:"0 0 20px",color:"#f1f5f9",fontSize:22,fontWeight:700}}>Kullanıcı Yönetimi</h2>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <h2 style={{margin:0,color:"#f1f5f9",fontSize:22,fontWeight:700}}>Kullanıcı Yönetimi</h2>
+          {hasPerm("admin")&&<Btn icon={Plus} onClick={startNewUser}>Yeni Kullanıcı</Btn>}
+        </div>
         <Card>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <thead><tr style={{borderBottom:"1px solid rgba(255,255,255,0.08)"}}>{["Kullanıcı","Rol","Yetki Sayısı","İşlem"].map(h=><th key={h} style={{padding:"10px 12px",textAlign:"left",fontSize:11,color:"#64748b",fontWeight:600,textTransform:"uppercase"}}>{h}</th>)}</tr></thead>
+            <thead><tr style={{borderBottom:"1px solid rgba(255,255,255,0.08)"}}>{["Kullanıcı","Rol","Kullanıcı Adı","Yetki Sayısı","İşlem"].map(h=><th key={h} style={{padding:"10px 12px",textAlign:"left",fontSize:11,color:"#64748b",fontWeight:600,textTransform:"uppercase"}}>{h}</th>)}</tr></thead>
             <tbody>
               {users.map(u=>{
+                const actualPerms = userPerms[u.id] || DEFAULT_ROLES[u.role]?.permissions || [];
                 const role=DEFAULT_ROLES[u.role];
                 return(
                   <tr key={u.id} style={{borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-                    <td style={{padding:"10px 12px"}}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:30,height:30,borderRadius:8,background:"rgba(59,130,246,0.15)",display:"flex",alignItems:"center",justifyContent:"center",color:"#3b82f6",fontWeight:700,fontSize:13}}>{u.avatar}</div><div><div style={{fontSize:13,fontWeight:600,color:"#e2e8f0"}}>{u.name}</div><div style={{fontSize:11,color:"#64748b"}}>{u.username}</div></div></div></td>
+                    <td style={{padding:"10px 12px"}}><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:30,height:30,borderRadius:8,background:"rgba(59,130,246,0.15)",display:"flex",alignItems:"center",justifyContent:"center",color:"#3b82f6",fontWeight:700,fontSize:13}}>{u.avatar}</div><div><div style={{fontSize:13,fontWeight:600,color:"#e2e8f0"}}>{u.name}</div></div></div></td>
                     <td style={{padding:"10px 12px"}}><Badge color="#8b5cf6" bg="rgba(139,92,246,0.15)">{role?.label}</Badge></td>
-                    <td style={{padding:"10px 12px",fontSize:13,color:"#94a3b8"}}>{role?.permissions.length}</td>
-                    <td style={{padding:"10px 12px"}}><Btn variant="ghost" size="sm" icon={Shield} onClick={()=>startEdit(u)}>Yetkiler</Btn></td>
+                    <td style={{padding:"10px 12px",fontSize:12,color:"#94a3b8"}}>{u.username}</td>
+                    <td style={{padding:"10px 12px",fontSize:13,color:"#94a3b8"}}>{actualPerms.length}</td>
+                    <td style={{padding:"10px 12px"}}>
+                      <div style={{display:"flex",gap:4}}>
+                        {hasPerm("admin")&&<Btn variant="ghost" size="sm" icon={Edit} onClick={()=>startEditUser(u)}>Düzenle</Btn>}
+                        <Btn variant="ghost" size="sm" icon={Shield} onClick={()=>startEdit(u)}>Yetkiler</Btn>
+                        {hasPerm("admin")&&u.id!==currentUser?.id&&<Btn variant="danger" size="sm" icon={Trash2} onClick={()=>deleteUser(u.id)}/>}
+                      </div>
+                    </td>
                   </tr>
                 );
               })}
@@ -2710,8 +3282,8 @@ function App() {
           </table>
         </Card>
 
-        {editUser&&(
-          <Modal title={`${editUser.name} — Yetki Düzenleme`} onClose={()=>setEditUser(null)} width={600}>
+        {editMode==="perms"&&editUser&&(
+          <Modal title={`${editUser.name} — Yetki Düzenleme`} onClose={()=>{setEditMode(null);setEditUser(null);}} width={600}>
             <div style={{marginBottom:14}}><span style={{fontSize:13,color:"#94a3b8"}}>Rol: </span><Badge color="#8b5cf6" bg="rgba(139,92,246,0.15)">{DEFAULT_ROLES[editUser.role]?.label}</Badge></div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
               {Object.entries(PERMISSIONS).map(([key,label])=>(
@@ -2722,7 +3294,17 @@ function App() {
                 </label>
               ))}
             </div>
-            <div style={{marginTop:16,display:"flex",justifyContent:"flex-end"}}><Btn variant="primary" icon={Save} onClick={()=>setEditUser(null)}>Kaydet</Btn></div>
+            <div style={{marginTop:16,display:"flex",justifyContent:"flex-end"}}><Btn variant="primary" icon={Save} onClick={savePerms}>Kaydet</Btn></div>
+          </Modal>
+        )}
+
+        {(editMode==="user"||editMode==="new")&&(
+          <Modal title={editMode==="new"?"Yeni Kullanıcı Ekle":`${editUser?.name} — Düzenle`} onClose={()=>{setEditMode(null);setEditUser(null);}} width={500}>
+            <Input label="Ad Soyad" value={euName} onChange={setEuName} placeholder="Ad Soyad"/>
+            <div style={{marginTop:12}}><Input label="Kullanıcı Adı" value={euUsername} onChange={setEuUsername} placeholder="kullanici"/></div>
+            <div style={{marginTop:12}}><Input label="Şifre" value={euPassword} onChange={setEuPassword} placeholder="****"/></div>
+            <div style={{marginTop:12}}><Input label="Rol" value={euRole} onChange={setEuRole} options={Object.entries(DEFAULT_ROLES).map(([k,v])=>({value:k,label:v.label}))}/></div>
+            <div style={{marginTop:16,display:"flex",justifyContent:"flex-end"}}><Btn variant="primary" icon={Save} onClick={saveUser} disabled={!euName.trim()||!euUsername.trim()||!euPassword.trim()}>Kaydet</Btn></div>
           </Modal>
         )}
       </div>
@@ -2770,12 +3352,12 @@ function App() {
             <input type="text" placeholder="Ara..." style={{background:"transparent",border:"none",color:"#e2e8f0",fontSize:13,outline:"none",width:200}}/>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            {!hasPerm("orders_price")&&<Badge color="#f59e0b" bg="rgba(245,158,11,0.12)"><Lock size={10}/> Fiyat Gizli</Badge>}
             <span style={{fontSize:12,color:"#64748b"}}>{new Date().toLocaleDateString("tr-TR",{weekday:"short",day:"numeric",month:"long"})}</span>
             <div style={{display:"flex",alignItems:"center",gap:6,padding:"4px 10px",borderRadius:8,background:"rgba(59,130,246,0.1)"}}>
               <div style={{width:24,height:24,borderRadius:6,background:"rgba(59,130,246,0.25)",display:"flex",alignItems:"center",justifyContent:"center",color:"#3b82f6",fontWeight:700,fontSize:11}}>{currentUser.avatar}</div>
               <span style={{fontSize:12,fontWeight:600,color:"#e2e8f0"}}>{currentUser.name}</span>
             </div>
+            <button onClick={()=>{setCurrentUser(null);localStorage.removeItem("mihenkCurrentUser");}} style={{background:"none",border:"none",cursor:"pointer",color:"#64748b",padding:4,display:"flex",alignItems:"center"}} title="Çıkış Yap"><LogOut size={16}/></button>
           </div>
         </div>
         {renderPage()}
@@ -2816,7 +3398,15 @@ function App() {
                         <span style={{fontSize:14,fontWeight:700,color:"#e2e8f0"}}>{wo.orderType==="production"?item.productCode:`Ø${item.diameter}mm — ${item.islem||""}`}</span>
                         {item.productType&&<span style={{fontSize:11,color:"#6366f1",padding:"1px 6px",borderRadius:4,background:"rgba(99,102,241,0.12)"}}>{item.productType}</span>}
                         {item.toolCode&&<span style={{fontSize:11,color:"#f59e0b",fontWeight:600}}>{item.toolCode}</span>}
-                        <span style={{fontSize:12,color:"#64748b"}}>{item.qty} ad</span>
+                        {(Number(item.rejectQty)||0)>0?(
+                          <span style={{fontSize:12}}>
+                            <span style={{color:"#10b981",fontWeight:700}}>{item.qty-(Number(item.rejectQty)||0)}</span>
+                            <span style={{color:"#64748b"}}>/{item.qty} ad</span>
+                            <span style={{color:"#ef4444",fontSize:11,marginLeft:2}}>({item.rejectQty} fire)</span>
+                          </span>
+                        ):(
+                          <span style={{fontSize:12,color:"#64748b"}}>{item.qty} ad</span>
+                        )}
                         {item.estimatedMinutes>0&&<Badge color="#3b82f6" bg="rgba(59,130,246,0.12)">⏱ {item.estimatedMinutes}dk</Badge>}
                         <Badge color={
                           item.woStatus==="completed"?"#10b981":
